@@ -1,69 +1,178 @@
-import Image from "next/image";
+import Link from "next/link";
+import { BoxCard } from "@/components/BoxCard";
+import { LinkButton } from "@/components/Button";
+import { Eyebrow } from "@/components/Eyebrow";
+import { InstagramLink } from "@/components/InstagramLink";
+import { MapEmbed } from "@/components/MapEmbed";
+import { OpeningHoursTable } from "@/components/OpeningHoursTable";
+import { Photo } from "@/components/Photo";
+import { Section } from "@/components/Section";
+import { ServiceNote } from "@/components/ServiceNote";
+import { SidesSentence } from "@/components/SidesSentence";
+import { FEATURED_BOXES } from "@/lib/menu";
+import { address, preOrderHref } from "@/lib/site";
+import { display, h2, textLink } from "@/lib/typography";
+
+const facts = [
+  { label: "Born in", value: "Jamaica" },
+  { label: "Built in", value: "Ipswich" },
+  { label: "Cooked by", value: "Flowers & Sons" },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      <Hero />
+      <OurStory />
+      <TheBoxes />
+      <Catering />
+      <FindUs />
+    </>
+  );
+}
+
+function Hero() {
+  return (
+    <Section className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+      <div>
+        <Eyebrow>Flowers &amp; Sons</Eyebrow>
+        <h1 className={`mt-6 ${display}`}>
+          Jamaican family recipes, cooked by the next generation.
+        </h1>
+        <p className="mt-6 max-w-xl text-lg text-muted">
+          Taught by our fathers and uncles. Cooked fresh in Ipswich.
+        </p>
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <LinkButton href={preOrderHref}>Pre-order</LinkButton>
+          <LinkButton href="/catering" variant="secondary">
+            Plan an event
+          </LinkButton>
+        </div>
+        <ServiceNote className="mt-5 text-[15px] text-muted" />
+      </div>
+
+      <Photo
+        alt="Flowers Kitchen boxes"
+        aspect="4/5"
+        caption="Hero photo"
+        sizes="(min-width: 1024px) 520px, 100vw"
+      />
+    </Section>
+  );
+}
+
+function OurStory() {
+  return (
+    <Section tone="mountain">
+      <div className="max-w-3xl">
+        <Eyebrow as="h2" tone="mountain">
+          Our story
+        </Eyebrow>
+        <blockquote className="mt-8 font-display text-[34px] font-semibold leading-[1.1] tracking-[-0.015em] md:text-[52px] md:leading-[1.05]">
+          <p>Recipes passed down. Cooked by the next generation.</p>
+        </blockquote>
+        <p className="mt-8 max-w-2xl text-lg text-mountain-muted">
+          Our fathers and uncles were born and raised in Jamaica, came to
+          Ipswich and built a life here. Everything we cook, they taught us.
+        </p>
+        <Link
+          href="/our-story"
+          className={`mt-8 ${textLink} decoration-allspice`}
+        >
+          Read our story&nbsp;<span aria-hidden>→</span>
+        </Link>
+      </div>
+
+      <dl className="mt-16 grid gap-10 sm:grid-cols-3 sm:gap-8 md:mt-24">
+        {facts.map((fact) => (
+          <div key={fact.label}>
+            <span aria-hidden className="block h-px w-10 bg-allspice" />
+            <dt className="mt-5 text-[15px] text-mountain-muted">
+              {fact.label}
+            </dt>
+            <dd className="mt-1 font-display text-[28px] font-semibold leading-tight">
+              {fact.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Section>
+  );
+}
+
+function TheBoxes() {
+  return (
+    <Section>
+      <div className="max-w-3xl">
+        <Eyebrow>The boxes</Eyebrow>
+        <h2 className={`mt-6 ${h2}`}>Pick your box.</h2>
+        <SidesSentence className="mt-4 text-lg text-muted" />
+      </div>
+
+      <ul className="mt-12 grid gap-6 lg:grid-cols-3">
+        {FEATURED_BOXES.map((box) => (
+          <li key={box.slug}>
+            <BoxCard box={box} />
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-12 flex justify-center">
+        <LinkButton href="/menu" variant="secondary">
+          See the full menu
+        </LinkButton>
+      </div>
+    </Section>
+  );
+}
+
+function Catering() {
+  return (
+    <Section
+      tone="sorrel"
+      className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16"
+    >
+      <div>
+        <Eyebrow tone="sorrel">Catering</Eyebrow>
+        <h2 className={`mt-6 ${h2}`}>
+          Feeding your family, the way we feed ours.
+        </h2>
+        <p className="mt-6 max-w-xl text-lg">
+          Birthdays, weddings, office lunches, christenings. Tell us about your
+          event and we&apos;ll put together the food.
+        </p>
+        <LinkButton href="/catering" variant="inverse" className="mt-10">
+          Plan your event
+        </LinkButton>
+      </div>
+
+      <div className="hidden lg:block">
+        <Photo
+          alt="Flowers Kitchen catering"
+          aspect="4/3"
+          caption="Event photo"
+          sizes="560px"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </Section>
+  );
+}
+
+function FindUs() {
+  return (
+    <Section tone="paper" className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+      <div>
+        <Eyebrow>Find us</Eyebrow>
+        <h2 className={`mt-6 ${h2}`}>{address}</h2>
+
+        <OpeningHoursTable className="mt-10 max-w-sm text-[15px]" />
+
+        <p className="mt-8">Collection only. Pre-order by Instagram DM</p>
+        <InstagramLink />
+        <ServiceNote className="mt-4 text-[15px] text-muted" />
+      </div>
+
+      <MapEmbed className="aspect-4/3 lg:aspect-auto lg:h-full lg:min-h-[28rem]" />
+    </Section>
   );
 }

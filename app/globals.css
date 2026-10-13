@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Brand palette only: Tailwind's default colours are removed. */
+  --color-*: initial;
+  --color-cream: #f3eadb;
+  --color-paper: #fbf6ee;
+  --color-pimento: #2b1b16;
+  --color-muted: #6e5b4f;
+  --color-sorrel: #8f1d2c;
+  --color-mountain: #1e3a30;
+  --color-allspice: #b9853f;
+  --color-hairline: #d9cbb4;
+  --color-mountain-muted: #c9bfae;
+  --color-mountain-focus: #d4a55e;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --radius-sm: 2px;
+  --radius-md: 6px;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --container-content: 75rem;
+
+  --animate-fade-rise: fade-rise 350ms ease-out both;
+
+  @keyframes fade-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  :root {
+    --focus-ring: var(--color-mountain);
+  }
+
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  body {
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

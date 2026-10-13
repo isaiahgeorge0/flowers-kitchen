@@ -1,0 +1,56 @@
+---
+description: Flowers Kitchen brand rules — apply to every page, component and piece of copy
+alwaysApply: true
+---
+
+# Flowers Kitchen — brand rules
+
+Client: Flowers Kitchen, a Jamaican takeaway on St Helen's Street, Ipswich. Run by brothers Asher and Tajay Flowers, cooking recipes taught by their fathers and uncles (born in Jamaica, built a life in Ipswich). Collection only, halal, pre-order available. Food is sold as boxes (jerk chicken, fried chicken, BBQ chicken, curry goat, curry chicken, fried fish, wings), each with rice & peas or white rice, mac & cheese, festival and coleslaw. Business goals: takeaway orders and event catering.
+
+Positioning: "Jamaican family recipes, cooked by the next generation." Premium, warm, trustworthy. Culture through the food, the family and the hibiscus — never flags, palm trees, Rasta stripes, cartoon chefs or street slang.
+
+## Stack
+Next.js App Router, TypeScript, Tailwind. Mobile-first — most visitors arrive from Instagram on a phone.
+
+## Colour (use these tokens only — no other colours)
+| token | hex | use |
+| --- | --- | --- |
+| cream | #F3EADB | default page background (~60% of any layout) |
+| paper | #FBF6EE | cards and raised panels on cream |
+| pimento | #2B1B16 | all headings and body text on cream |
+| muted | #6E5B4F | secondary text on cream/paper |
+| sorrel | #8F1D2C | primary buttons, prices, eyebrows, one hero panel per page max |
+| mountain | #1E3A30 | second background: footer, catering section |
+| allspice | #B9853F | thin rules, small icons on mountain. Never text on cream |
+| hairline | #D9CBB4 | borders and dividers on cream |
+On mountain/sorrel backgrounds, text is cream (not white); muted text on mountain is #C9BFAE.
+Focus ring: 2px solid mountain on light backgrounds, #D4A55E on mountain.
+
+## Type
+- Fraunces (next/font/google, weights 500 & 600) — headlines, prices. Display 64–88px/1.0, H1 44px, H2 30–40px. Letter-spacing -0.015em on large sizes.
+- DM Sans (weights 400, 500, 600) — everything else. Body 17–18px / 1.6.
+- Eyebrow: DM Sans 600, 13px, uppercase, letter-spacing 0.32em, in sorrel (allspice on mountain). Put one above every H1/hero headline.
+- Buttons: DM Sans 600, 15px, uppercase, letter-spacing 0.08em.
+- Never more than two weights per section. No italics except a family quote.
+
+## Layout
+- Generous whitespace: ~96px between sections on desktop, ~64px on mobile. If it feels full, remove something.
+- Corners nearly square: 2px on buttons, inputs, cards; 6px on photos. Fully round only for avatar/roundel.
+- Borders over shadows. No gradients except a dark overlay on photos for text legibility.
+- Signature detail: short horizontal rules either side of tracked capitals (like "— KITCHEN —" in the logo).
+- Motion: fades and 8–16px rises, 300–400ms ease-out. Nothing bounces. Respect prefers-reduced-motion.
+
+## Logo files (in /public/brand/)
+- Header: flowers-kitchen_horizontal_full-colour.svg (min 160px wide; below that use the mark).
+- Hero/brand moments: flowers-kitchen_primary_full-colour.svg.
+- On mountain backgrounds: *_reverse-green.svg. On sorrel: *_reverse-sorrel.svg.
+- Favicon/small: flowers-kitchen_mark_full-colour.svg.
+- Always alt="Flowers Kitchen". Never recolour, stretch, add effects, or rebuild the logo in CSS/text.
+
+## Copy voice
+Warm, proud, plain-spoken. "We" (the family) to "you". British spelling. Short sentences. No emoji, no exclamation marks in headings. Say "boxes", never "meals" or "dishes". Always state plainly near calls to action: Halal · Collection only · Pre-order.
+Unknowns stay as obvious placeholders — prices "£XX", hours "00:00", founding year "XXXX". Never invent prices, hours, reviews, stats or awards.
+
+## Accessibility
+WCAG AA contrast minimum (the token pairs above pass). Semantic HTML, visible focus states, real alt text, form labels, 44px minimum tap targets.
+Focus ring on sorrel backgrounds: 2px solid cream.

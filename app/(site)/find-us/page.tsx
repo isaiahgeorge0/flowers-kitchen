@@ -7,7 +7,7 @@ import { MapEmbed } from "@/components/MapEmbed";
 import { OpeningHoursTable } from "@/components/OpeningHoursTable";
 import { Section } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
-import { address, preOrderSteps } from "@/lib/site";
+import { address, orderHref, orderSteps } from "@/lib/site";
 import { h1, h2, h3 } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "Find Us" };
@@ -20,7 +20,15 @@ const faqs: { question: string; answer: ReactNode }[] = [
   },
   {
     question: "Can I order in advance?",
-    answer: "Yes — message us on Instagram to pre-order.",
+    answer: (
+      <>
+        Yes —{" "}
+        <Link href={orderHref} className="underline decoration-sorrel underline-offset-4">
+          order online
+        </Link>{" "}
+        and we&apos;ll have it ready to collect.
+      </>
+    ),
   },
   {
     question: "Do you do catering?",
@@ -44,16 +52,20 @@ export default function FindUsPage() {
           <Eyebrow>Find us</Eyebrow>
           <h1 className={`mt-6 ${h1}`}>{address}</h1>
           <p className="mt-6 text-lg">
-            Collection only. Pre-order by Instagram DM
+            Collection only.{" "}
+            <Link href={orderHref} className="font-semibold underline decoration-sorrel underline-offset-4">
+              Order online
+            </Link>{" "}
+            and collect from us.
           </p>
           <InstagramLink className="text-lg" />
 
           <h2 className={`mt-12 ${h3}`}>Opening hours</h2>
           <OpeningHoursTable className="mt-4 max-w-md" />
 
-          <h2 className={`mt-12 ${h3}`}>How to pre-order</h2>
+          <h2 className={`mt-12 ${h3}`}>How to order</h2>
           <ol className="mt-4 flex flex-col gap-4">
-            {preOrderSteps.map((step, i) => (
+            {orderSteps.map((step, i) => (
               <li key={step} className="flex gap-4">
                 <span
                   aria-hidden

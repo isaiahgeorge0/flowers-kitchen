@@ -1,11 +1,13 @@
-import { openingHours } from "@/lib/site";
+import { openingHoursRows } from "@/lib/ordering/hours";
+import { getOrderingSettings } from "@/lib/ordering/menu";
 
-export function OpeningHoursTable({ className = "" }: { className?: string }) {
+export async function OpeningHoursTable({ className = "" }: { className?: string }) {
+  const { openingHours } = await getOrderingSettings();
   return (
     <table className={`w-full ${className}`}>
       <caption className="sr-only">Opening hours</caption>
       <tbody>
-        {openingHours.map(({ day, hours }) => (
+        {openingHoursRows(openingHours).map(({ day, hours }) => (
           <tr key={day} className="border-b border-hairline">
             <th
               scope="row"

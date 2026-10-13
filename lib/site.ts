@@ -5,7 +5,7 @@ export const navLinks = [
   { href: "/find-us", label: "Find Us" },
 ] as const;
 
-export const preOrderHref = "/menu";
+export const orderHref = "/order";
 
 export const instagram = {
   handle: "@flowerskitchenipswich",
@@ -14,21 +14,13 @@ export const instagram = {
 
 export const address = "St Helen's Street, Ipswich";
 
+/** Shown in customer emails once confirmed, e.g. "01473 000000". See CONTENT_TODO.md. */
+export const shopPhone: string | null = null;
+
 export const serviceNotes = ["Halal", "Collection only", "Pre-order"];
 
-// TODO: Pre-order process to be confirmed with the client.
-export const preOrderSteps = [
+export const orderSteps = [
   "Choose your box",
-  "Message us on Instagram with your order and collection time",
+  "Pay securely online",
   "Collect from St Helen's Street",
 ];
-
-export const openingHours = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-].map((day) => ({ day, hours: "00:00 – 00:00" }));

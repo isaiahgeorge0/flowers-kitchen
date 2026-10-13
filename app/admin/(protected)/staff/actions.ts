@@ -25,14 +25,17 @@ function parseRole(raw: FormDataEntryValue | null): AdminRole | null {
   return isAdminRole(value) ? value : null;
 }
 
-/** Feature permissions follow the role until the ordering and menu phases need finer control. */
+/**
+ * Feature permissions follow the role. Operations staff run the kitchen board (orders, sold out,
+ * rice options, the ordering switch) and the leads; prices, hours and lead time need menus.
+ */
 function permissionsFor(role: AdminRole) {
   const full = role !== "operations";
   return {
     can_manage_menus: full,
-    can_manage_orders: full,
+    can_manage_orders: true,
     can_manage_events: full,
-    can_manage_catering: full,
+    can_manage_catering: true,
   };
 }
 

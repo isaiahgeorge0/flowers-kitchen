@@ -6,7 +6,7 @@ import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
 import { Section } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
-import { preOrderHref } from "@/lib/site";
+import { orderHref } from "@/lib/site";
 import { display, h2, h3 } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "Our Story" };
@@ -104,7 +104,7 @@ export default function OurStoryPage() {
       <Section className="flex flex-col items-center text-center">
         <h2 className={h2}>Taste it for yourself.</h2>
         <div className="mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <LinkButton href={preOrderHref}>Pre-order</LinkButton>
+          <LinkButton href={orderHref}>Order online</LinkButton>
           <LinkButton href="/menu" variant="secondary">
             See the menu
           </LinkButton>

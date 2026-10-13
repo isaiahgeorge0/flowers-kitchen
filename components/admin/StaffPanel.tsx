@@ -185,7 +185,8 @@ export function StaffPanel({
               <RoleSelect id="staff-role" defaultRole={typedRole} allowOwner={actorIsOwner} />
               <p className="mt-2 text-[15px] text-muted">
                 Owners can do everything. Managers can do everything except change owners.
-                Operations handle day-to-day work.
+                Operations run the kitchen board and leads, mark boxes sold out and switch
+                ordering on or off, but can&rsquo;t change prices or opening hours.
               </p>
             </div>
             <ActionFeedback state={createState} className="md:col-span-2" />

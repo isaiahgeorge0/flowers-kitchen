@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  // The QR artwork reads the brand mark from disk.
+  outputFileTracingIncludes: {
+    "/admin/qr/*": ["./public/brand/flowers-kitchen_mark_full-colour.svg"],
+  },
   turbopack: {
     rules: {
       "*.css": {

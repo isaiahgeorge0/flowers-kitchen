@@ -6,12 +6,14 @@ import { Section } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
 import { SidesSentence } from "@/components/SidesSentence";
 import { BOXES } from "@/lib/menu";
-import { preOrderSteps } from "@/lib/site";
+import { boxPriceLabels } from "@/lib/ordering/menu";
+import { orderSteps } from "@/lib/site";
 import { h1, h2 } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "Menu" };
 
-export default function MenuPage() {
+export default async function MenuPage() {
+  const prices = await boxPriceLabels();
   return (
     <>
       <Section>
@@ -26,16 +28,15 @@ export default function MenuPage() {
         <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {BOXES.map((box) => (
             <li key={box.slug}>
-              <BoxCard box={box} />
+              <BoxCard box={box} price={prices[box.slug]} />
             </li>
           ))}
         </ul>
       </Section>
 
-      {/* Pre-order process needs confirming with the client (steps live in lib/site.ts). */}
       <Section tone="paper">
-        <h2 className={h2}>How to pre-order</h2>
-        <NumberedSteps steps={preOrderSteps} className="mt-12" />
+        <h2 className={h2}>How to order</h2>
+        <NumberedSteps steps={orderSteps} className="mt-12" />
 
         <p className="mt-16 border-t border-hairline pt-8 text-[15px] text-muted">
           Allergies? Please tell us before you order and ask us about allergens

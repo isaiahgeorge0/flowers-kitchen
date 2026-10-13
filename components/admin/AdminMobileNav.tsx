@@ -3,15 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type ReactNode } from "react";
+import type { NavAccess } from "@/lib/admin/nav";
 import { AdminNavList } from "./AdminNav";
 
 type AdminMobileNavProps = {
   displayName: string;
   roleLabel: string;
   signOutSlot: ReactNode;
+  access: NavAccess;
 };
 
-export function AdminMobileNav({ displayName, roleLabel, signOutSlot }: AdminMobileNavProps) {
+export function AdminMobileNav({ displayName, roleLabel, signOutSlot, access }: AdminMobileNavProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -88,7 +90,7 @@ export function AdminMobileNav({ displayName, roleLabel, signOutSlot }: AdminMob
         </div>
 
         <nav aria-label="Admin" className="flex-1 overflow-y-auto py-6">
-          <AdminNavList onNavigate={closeMenu} />
+          <AdminNavList access={access} onNavigate={closeMenu} />
         </nav>
 
         <div className="border-t border-allspice px-5 py-6">

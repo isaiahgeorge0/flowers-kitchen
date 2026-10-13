@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { navLinks, preOrderHref } from "@/lib/site";
+import { navLinks, orderHref } from "@/lib/site";
 import { LinkButton } from "./Button";
 import { NavLink } from "./NavLink";
 import { ServiceNote } from "./ServiceNote";
@@ -95,8 +95,8 @@ export function MobileMenu() {
           </ul>
 
           <div className="mt-auto flex flex-col gap-4 pt-12">
-            <LinkButton href={preOrderHref} onClick={closeMenu}>
-              Pre-order
+            <LinkButton href={orderHref} onClick={closeMenu}>
+              Order online
             </LinkButton>
             <ServiceNote className="text-center text-[15px] text-muted" />
           </div>

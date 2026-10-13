@@ -1,0 +1,154 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { MAX_LINE_QUANTITY } from "./limits";
+import { cartLineKey, type CartLine } from "./types";
+
+// The basket lives in localStorage (ported from the template's storefront session cart), so it
+// survives the trip to Stripe and back, and stays in step across tabs.
+
+const CART_KEY = "fk_cart_v1";
+const NONCE_KEY = "fk_checkout_nonce";
+const EMPTY: CartLine[] = [];
+
+let lines: CartLine[] | null = null;
+let drawerOpen = false;
+const listeners = new Set<() => void>();
+
+function isLine(value: unknown): value is CartLine {
+  if (!value || typeof value !== "object") return false;
+  const line = value as Record<string, unknown>;
+  return (
+    typeof line.boxId === "string" &&
+    typeof line.name === "string" &&
+    Array.isArray(line.optionIds) &&
+    line.optionIds.every((id) => typeof id === "string") &&
+    Array.isArray(line.optionLabels) &&
+    line.optionLabels.every((label) => typeof label === "string") &&
+    Number.isInteger(line.unitPence) &&
+    Number.isInteger(line.quantity) &&
+    (line.quantity as number) >= 1 &&
+    (line.quantity as number) <= MAX_LINE_QUANTITY
+  );
+}
+
+function load(): CartLine[] {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(CART_KEY) ?? "null");
+    const saved = parsed && typeof parsed === "object" ? (parsed as { lines?: unknown }).lines : null;
+    if (!Array.isArray(saved)) return EMPTY;
+    return saved.filter(isLine).map((line) => ({ ...line, key: cartLineKey(line.boxId, line.optionIds) }));
+  } catch {
+    return EMPTY;
+  }
+}
+
+function emit() {
+  listeners.forEach((listener) => listener());
+}
+
+function save(next: CartLine[]) {
+  lines = next;
+  try {
+    if (next.length === 0) window.localStorage.removeItem(CART_KEY);
+    else window.localStorage.setItem(CART_KEY, JSON.stringify({ v: 1, lines: next }));
+  } catch {
+    // Private browsing or full storage: the basket still works for this page.
+  }
+  emit();
+}
+
+function getLines() {
+  if (lines === null) lines = typeof window === "undefined" ? EMPTY : load();
+  return lines;
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== CART_KEY) return;
+    lines = load();
+    emit();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+export const cart = {
+  add(line: Omit<CartLine, "key">) {
+    const key = cartLineKey(line.boxId, line.optionIds);
+    const current = getLines();
+    const existing = current.find((item) => item.key === key);
+    save(
+      existing
+        ? current.map((item) =>
+            item.key === key
+              ? { ...item, unitPence: line.unitPence, quantity: Math.min(item.quantity + line.quantity, MAX_LINE_QUANTITY) }
+              : item,
+          )
+        : [...current, { ...line, key, quantity: Math.min(line.quantity, MAX_LINE_QUANTITY) }],
+    );
+  },
+  setQuantity(key: string, quantity: number) {
+    if (quantity < 1) return cart.remove(key);
+    save(getLines().map((item) => (item.key === key ? { ...item, quantity: Math.min(quantity, MAX_LINE_QUANTITY) } : item)));
+  },
+  remove(key: string) {
+    save(getLines().filter((item) => item.key !== key));
+  },
+  replace(next: CartLine[]) {
+    save(next);
+  },
+  clear() {
+    save(EMPTY);
+    try {
+      window.sessionStorage.removeItem(NONCE_KEY);
+    } catch {}
+  },
+  openDrawer() {
+    drawerOpen = true;
+    emit();
+  },
+  closeDrawer() {
+    drawerOpen = false;
+    emit();
+  },
+};
+
+export function useCart() {
+  return useSyncExternalStore(subscribe, getLines, () => EMPTY);
+}
+
+export function useCartDrawerOpen() {
+  return useSyncExternalStore(subscribe, () => drawerOpen, () => false);
+}
+
+const noopSubscribe = () => () => {};
+
+/** False during server render and hydration; true once the saved basket can be read. */
+export function useHydrated() {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
+export function cartTotals(items: CartLine[]) {
+  return {
+    count: items.reduce((sum, item) => sum + item.quantity, 0),
+    totalPence: items.reduce((sum, item) => sum + item.unitPence * item.quantity, 0),
+  };
+}
+
+/** One id per checkout visit, so a second Pay tap reuses or replaces the first attempt. */
+export function checkoutNonce() {
+  try {
+    const existing = window.sessionStorage.getItem(NONCE_KEY);
+    if (existing) return existing;
+    const created = crypto.randomUUID();
+    window.sessionStorage.setItem(NONCE_KEY, created);
+    return created;
+  } catch {
+    return crypto.randomUUID();
+  }
+}

@@ -7,6 +7,8 @@ import { BUSINESS_TIME_ZONE, occasionLabel, todayISO, type Occasion } from "@/li
 import { requireActiveAdmin } from "@/lib/admin/guards";
 import { formatEventDate } from "@/lib/admin/lead-status";
 import { fetchLeadCounts, fetchUpcomingEvents } from "@/lib/admin/leads";
+import { fetchTodayOrderStats } from "@/lib/admin/orders";
+import { formatPence } from "@/lib/ordering/money";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -22,7 +24,7 @@ export default function DashboardPage() {
   return (
     <>
       <AdminPageHeader eyebrow="Admin" title="Dashboard">
-        Where catering stands today.
+        Where orders and catering stand today.
       </AdminPageHeader>
       <Suspense fallback={<AdminLoading />}>
         <DashboardContent />
@@ -32,16 +34,85 @@ export default function DashboardPage() {
 }
 
 async function DashboardContent() {
-  const { supabase } = await requireActiveAdmin();
+  const { supabase, adminUser } = await requireActiveAdmin();
   const today = todayISO(BUSINESS_TIME_ZONE);
 
-  const [counts, upcoming] = await Promise.all([
+  const [counts, upcoming, orderStats] = await Promise.all([
     fetchLeadCounts(supabase),
     fetchUpcomingEvents(supabase, today, addDays(today, UPCOMING_DAYS)),
+    adminUser.canManageOrders ? fetchTodayOrderStats(supabase) : Promise.resolve(undefined),
   ]);
 
   return (
     <>
+      {orderStats !== undefined && (
+        <section aria-labelledby="orders-today-heading" className="mb-10">
+          <h2 id="orders-today-heading" className={`${adminH2} mb-4`}>
+            Orders today
+          </h2>
+          {orderStats === null ? (
+            <p role="alert" className={`${adminCard} px-6 py-5 text-sorrel`}>
+              We couldn&rsquo;t load today&rsquo;s orders. Refresh to try again.
+            </p>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Stat
+                  label="In the kitchen"
+                  value={orderStats.pending}
+                  note="New, preparing or ready"
+                  href="/admin/orders"
+                  accent
+                />
+                <Stat
+                  label="Orders"
+                  value={orderStats.orders}
+                  note={`Paid online today · ${orderStats.web} web, ${orderStats.qr} QR`}
+                  href="/admin/orders/history"
+                />
+                <Stat
+                  label="Takings"
+                  value={formatPence(orderStats.revenuePence)}
+                  note="Paid today, after refunds"
+                  href="/admin/orders/history"
+                />
+              </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_2fr]">
+                <Stat
+                  label="Upcoming today"
+                  value={orderStats.upcomingToday}
+                  note="Booked for a later time today"
+                  href="/admin/orders"
+                />
+                <Link
+                  href="/admin/orders"
+                  className={`${adminCard} block p-6 transition-colors duration-300 ease-out hover:border-pimento`}
+                >
+                  <span className="block text-[13px] font-semibold uppercase tracking-[0.2em] text-muted">
+                    Scheduled · next 7 days
+                  </span>
+                  <ul className="mt-4 grid grid-cols-7 gap-1 text-center" aria-label="Scheduled orders by day">
+                    {orderStats.nextDays.map((day) => (
+                      <li key={day.date} className="border-t border-hairline pt-2">
+                        <span className="block font-display text-[28px] font-semibold leading-none">
+                          {day.orders}
+                          <span className="sr-only"> {day.orders === 1 ? "order" : "orders"} on</span>
+                        </span>
+                        <span className="mt-1 block text-[13px] leading-tight text-muted">
+                          {day.label.split(" ")[0]}
+                          <span className="block">{day.label.split(" ").slice(1).join(" ")}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Link>
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      <h2 className={`${adminH2} mb-4`}>Catering</h2>
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="New leads" value={counts.new} note="Waiting for a reply" href="/admin/leads?status=new" accent />
         <Stat label="Quoted" value={counts.quoted} note="Waiting on the customer" href="/admin/leads?status=quoted" />
@@ -102,7 +173,7 @@ function Stat({
   accent = false,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   note: string;
   href: string;
   accent?: boolean;

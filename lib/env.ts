@@ -34,3 +34,64 @@ function readEnv() {
 }
 
 export const env = readEnv();
+
+// Stripe is checked on first use, so the rest of the site still runs while it is being set up.
+const stripeSchema = z.object({
+  STRIPE_SECRET_KEY: z.string().regex(/^sk_(test|live)_/, "must start with sk_test_ or sk_live_"),
+  STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
+  // Public origin with no trailing slash, e.g. http://localhost:3000 or https://flowerskitchen.co.uk
+  NEXT_PUBLIC_SITE_URL: z.url(),
+  // Staging only: allow sk_test_ keys when NODE_ENV=production.
+  STRIPE_ALLOW_TEST_KEYS: z.enum(["true", "false", ""]).optional(),
+});
+
+export type StripeEnv = {
+  secretKey: string;
+  webhookSecret: string;
+  siteUrl: string;
+  mode: "test" | "live";
+};
+
+let stripeEnvCache: StripeEnv | null = null;
+
+export function stripeEnv(): StripeEnv {
+  if (stripeEnvCache) return stripeEnvCache;
+
+  const result = stripeSchema.safeParse(process.env);
+  if (!result.success) {
+    const problems = result.error.issues.map((issue) => {
+      const key = String(issue.path[0]);
+      return `  - ${key}: ${process.env[key] ? "invalid value" : "missing"}`;
+    });
+    throw new Error(`Flowers Kitchen: Stripe settings are missing or invalid:\n${problems.join("\n")}`);
+  }
+
+  const value = result.data;
+  const mode = value.STRIPE_SECRET_KEY.startsWith("sk_live_") ? "live" : "test";
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!isProduction && mode === "live") {
+    throw new Error(
+      "Flowers Kitchen: STRIPE_SECRET_KEY is a LIVE key outside production. Use an sk_test_ key locally.",
+    );
+  }
+  if (isProduction && mode === "test" && value.STRIPE_ALLOW_TEST_KEYS !== "true") {
+    throw new Error(
+      "Flowers Kitchen: production is using a Stripe TEST key. Install live keys, or set " +
+        "STRIPE_ALLOW_TEST_KEYS=true only on a staging site.",
+    );
+  }
+
+  const site = new URL(value.NEXT_PUBLIC_SITE_URL);
+  if (isProduction && site.protocol !== "https:") {
+    throw new Error("Flowers Kitchen: NEXT_PUBLIC_SITE_URL must use https in production.");
+  }
+
+  stripeEnvCache = {
+    secretKey: value.STRIPE_SECRET_KEY,
+    webhookSecret: value.STRIPE_WEBHOOK_SECRET,
+    siteUrl: site.origin,
+    mode,
+  };
+  return stripeEnvCache;
+}

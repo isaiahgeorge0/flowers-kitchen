@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s — Flowers Kitchen",
   },
   description:
-    "Jamaican family recipes, cooked by the next generation. Halal boxes to collect from St Helen's Street, Ipswich. Pre-order or book us for your event.",
+    "Jamaican family recipes, cooked by the next generation. Halal boxes to collect from St Helen's Street, Ipswich. Order online or book us for your event.",
   icons: {
     icon: {
       url: "/brand/flowers-kitchen_mark_full-colour.svg",

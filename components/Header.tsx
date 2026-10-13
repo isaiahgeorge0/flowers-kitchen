@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { navLinks, preOrderHref } from "@/lib/site";
+import { navLinks, orderHref } from "@/lib/site";
 import { LinkButton } from "./Button";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
+import { CartButton } from "./order/CartButton";
 
 export function Header() {
   return (
@@ -33,12 +34,18 @@ export function Header() {
               </li>
             ))}
             <li>
-              <LinkButton href={preOrderHref}>Pre-order</LinkButton>
+              <CartButton />
+            </li>
+            <li>
+              <LinkButton href={orderHref}>Order online</LinkButton>
             </li>
           </ul>
         </nav>
 
-        <MobileMenu />
+        <div className="flex items-center gap-1 lg:hidden">
+          <CartButton compact />
+          <MobileMenu />
+        </div>
       </div>
     </header>
   );

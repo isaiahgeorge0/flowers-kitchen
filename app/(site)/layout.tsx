@@ -1,5 +1,6 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { CartDrawer } from "@/components/order/CartDrawer";
 import { instagram } from "@/lib/site";
 
 // TODO: Add openingHoursSpecification, telephone and priceRange once confirmed with the client.
@@ -31,6 +32,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <Footer />
+      <CartDrawer />
     </>
   );
 }

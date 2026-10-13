@@ -5,6 +5,7 @@ import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
 import { AdminNavList } from "@/components/admin/AdminNav";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 import { requireActiveAdmin } from "@/lib/admin/guards";
+import { navAccess } from "@/lib/admin/nav";
 import { ROLE_LABELS } from "@/lib/admin/types";
 
 export default function ProtectedAdminLayout({ children }: LayoutProps<"/admin">) {
@@ -19,6 +20,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, adminUser } = await requireActiveAdmin();
   const displayName = user.displayName ?? user.email ?? "Staff";
   const roleLabel = ROLE_LABELS[adminUser.role];
+  const access = navAccess(adminUser);
 
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
@@ -26,6 +28,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
         displayName={displayName}
         roleLabel={roleLabel}
         signOutSlot={<SignOutButton />}
+        access={access}
       />
 
       <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col bg-mountain text-cream [--focus-ring:var(--color-mountain-focus)] lg:flex">
@@ -40,7 +43,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
           />
         </Link>
         <nav aria-label="Admin" className="flex-1 overflow-y-auto px-4">
-          <AdminNavList />
+          <AdminNavList access={access} />
         </nav>
         <div className="border-t border-allspice px-8 py-6">
           <p className="truncate font-semibold">{displayName}</p>
@@ -52,7 +55,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <main id="main" className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-12">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-5xl has-[[data-wide]]:max-w-[1600px]">
           {user.mustChangePassword && (
             <div className="mb-8 rounded-sm border border-hairline border-l-sorrel border-l-4 bg-paper px-5 py-4">
               <p className="font-semibold">You&rsquo;re using a temporary password.</p>

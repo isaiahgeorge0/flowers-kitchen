@@ -1,12 +1,12 @@
 import type { Box } from "@/lib/menu";
 import { SIDES } from "@/lib/menu";
-import { preOrderHref } from "@/lib/site";
+import { orderHref } from "@/lib/site";
 import { LinkButton } from "./Button";
 import { Dotted } from "./Dotted";
 import { Eyebrow } from "./Eyebrow";
 import { Photo } from "./Photo";
 
-export function BoxCard({ box }: { box: Box }) {
+export function BoxCard({ box, price = box.price }: { box: Box; price?: string }) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-sm border border-hairline bg-paper">
       <div className="p-3 pb-0">
@@ -30,10 +30,10 @@ export function BoxCard({ box }: { box: Box }) {
 
         <div className="mt-auto flex items-center justify-between gap-4 pt-4">
           <p className="font-display text-2xl font-semibold text-sorrel">
-            {box.price}
+            {price}
           </p>
-          <LinkButton href={preOrderHref} size="sm">
-            Pre-order<span className="sr-only"> {box.name}</span>
+          <LinkButton href={orderHref} size="sm">
+            Order<span className="sr-only"> {box.name}</span>
           </LinkButton>
         </div>
       </div>

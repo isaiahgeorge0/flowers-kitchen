@@ -1,7 +1,9 @@
 import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
-import { address, instagram, navLinks, openingHours } from "@/lib/site";
+import { openingHoursRows } from "@/lib/ordering/hours";
+import { getOrderingSettings } from "@/lib/ordering/menu";
+import { address, instagram, navLinks } from "@/lib/site";
 import { Eyebrow } from "./Eyebrow";
 import { NavLink } from "./NavLink";
 import { ServiceNote } from "./ServiceNote";
@@ -10,6 +12,20 @@ async function CurrentYear() {
   "use cache";
   cacheLife("days");
   return new Date().getFullYear();
+}
+
+async function FooterHours() {
+  const { openingHours } = await getOrderingSettings();
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-[15px]">
+      {openingHoursRows(openingHours).map(({ day, hours }) => (
+        <div key={day} className="contents">
+          <dt className="text-mountain-muted">{day}</dt>
+          <dd>{hours}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
 
 const linkClasses =
@@ -69,14 +85,7 @@ export function Footer() {
           <Eyebrow as="h2" tone="mountain" className="mb-5">
             Opening hours
           </Eyebrow>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-[15px]">
-            {openingHours.map(({ day, hours }) => (
-              <div key={day} className="contents">
-                <dt className="text-mountain-muted">{day}</dt>
-                <dd>{hours}</dd>
-              </div>
-            ))}
-          </dl>
+          <FooterHours />
         </div>
       </div>
 

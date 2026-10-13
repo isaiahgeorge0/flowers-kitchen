@@ -10,7 +10,8 @@ import { Section } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
 import { SidesSentence } from "@/components/SidesSentence";
 import { FEATURED_BOXES } from "@/lib/menu";
-import { address, preOrderHref } from "@/lib/site";
+import { boxPriceLabels } from "@/lib/ordering/menu";
+import { address, orderHref } from "@/lib/site";
 import { display, h2, textLink } from "@/lib/typography";
 
 const facts = [
@@ -43,7 +44,7 @@ function Hero() {
           Taught by our fathers and uncles. Cooked fresh in Ipswich.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <LinkButton href={preOrderHref}>Pre-order</LinkButton>
+          <LinkButton href={orderHref}>Order online</LinkButton>
           <LinkButton href="/catering" variant="secondary">
             Plan an event
           </LinkButton>
@@ -100,7 +101,8 @@ function OurStory() {
   );
 }
 
-function TheBoxes() {
+async function TheBoxes() {
+  const prices = await boxPriceLabels();
   return (
     <Section>
       <div className="max-w-3xl">
@@ -112,7 +114,7 @@ function TheBoxes() {
       <ul className="mt-12 grid gap-6 lg:grid-cols-3">
         {FEATURED_BOXES.map((box) => (
           <li key={box.slug}>
-            <BoxCard box={box} />
+            <BoxCard box={box} price={prices[box.slug]} />
           </li>
         ))}
       </ul>
@@ -167,7 +169,13 @@ function FindUs() {
 
         <OpeningHoursTable className="mt-10 max-w-sm text-[15px]" />
 
-        <p className="mt-8">Collection only. Pre-order by Instagram DM</p>
+        <p className="mt-8">
+          Collection only.{" "}
+          <Link href={orderHref} className="font-semibold underline decoration-sorrel underline-offset-4">
+            Order online
+          </Link>{" "}
+          and collect from us.
+        </p>
         <InstagramLink />
         <ServiceNote className="mt-4 text-[15px] text-muted" />
       </div>

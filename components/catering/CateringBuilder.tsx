@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState, useTransition, type FormEvent } from "react";
-import { submitEnquiry, type EnquiryResult } from "@/app/catering/actions";
+import { submitEnquiry, type EnquiryResult } from "@/app/(site)/catering/actions";
 import { Button } from "@/components/Button";
 import { Eyebrow } from "@/components/Eyebrow";
 import {

@@ -1,14 +1,23 @@
 import "server-only";
 import { z } from "zod";
 
-const schema = z.object({
-  SUPABASE_URL: z.url(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  RESEND_API_KEY: z.string().min(1),
-  ENQUIRY_TO_EMAIL: z.email(),
-  // Either "hello@example.com" or "Flowers Kitchen <hello@example.com>".
-  ENQUIRY_FROM_EMAIL: z.string().min(3),
-});
+const schema = z
+  .object({
+    SUPABASE_URL: z.url(),
+    // Holds the project's secret key (sb_secret_…). Server only; bypasses RLS.
+    SUPABASE_SERVICE_ROLE_KEY: z.string().startsWith("sb_secret_"),
+    NEXT_PUBLIC_SUPABASE_URL: z.url(),
+    // Safe in the browser: every table it can reach is protected by RLS.
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith("sb_publishable_"),
+    RESEND_API_KEY: z.string().min(1),
+    ENQUIRY_TO_EMAIL: z.email(),
+    // Either "hello@example.com" or "Flowers Kitchen <hello@example.com>".
+    ENQUIRY_FROM_EMAIL: z.string().min(3),
+  })
+  .refine((value) => value.SUPABASE_URL === value.NEXT_PUBLIC_SUPABASE_URL, {
+    path: ["NEXT_PUBLIC_SUPABASE_URL"],
+    message: "must match SUPABASE_URL",
+  });
 
 function readEnv() {
   const result = schema.safeParse(process.env);

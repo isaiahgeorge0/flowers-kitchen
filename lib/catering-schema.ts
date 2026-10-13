@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import {
+  BUSINESS_TIME_ZONE,
   CATERING_CONFIG,
   FIELD_LIMITS,
   OCCASIONS,
@@ -13,7 +14,7 @@ import {
 } from "./catering";
 import { BOXES } from "./menu";
 
-export const BUSINESS_TIME_ZONE = "Europe/London";
+export { BUSINESS_TIME_ZONE };
 
 type NonEmpty<T> = [T, ...T[]];
 const occasions = OCCASIONS.map((o) => o.value) as NonEmpty<Occasion>;

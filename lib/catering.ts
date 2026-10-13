@@ -144,6 +144,8 @@ export function formatDate(iso: string) {
   }).format(new Date(y, m - 1, d));
 }
 
+export const BUSINESS_TIME_ZONE = "Europe/London";
+
 /** YYYY-MM-DD for today, in the given time zone (the device's own if omitted). */
 export function todayISO(timeZone?: string) {
   return new Intl.DateTimeFormat("en-CA", {

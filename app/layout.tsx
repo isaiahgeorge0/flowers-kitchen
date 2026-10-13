@@ -1,8 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { instagram } from "@/lib/site";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -38,21 +35,6 @@ export const viewport: Viewport = {
   themeColor: "#F3EADB",
 };
 
-// TODO: Add openingHoursSpecification, telephone and priceRange once confirmed with the client.
-const restaurantJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Restaurant",
-  name: "Flowers Kitchen",
-  servesCuisine: "Jamaican",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "St Helen's Street",
-    addressLocality: "Ipswich",
-    addressCountry: "GB",
-  },
-  sameAs: [instagram.url],
-};
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -60,23 +42,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${fraunces.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-cream font-sans text-pimento">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(restaurantJsonLd).replace(/</g, "\\u003c"),
-          }}
-        />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-paper focus:px-4 focus:py-3 focus:font-semibold"
         >
           Skip to content
         </a>
-        <Header />
-        <main id="main" className="flex flex-1 flex-col">
-          {children}
-        </main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

@@ -9,9 +9,9 @@ export const metadata: Metadata = { title: "Checkout", robots: { index: false } 
 export default async function CheckoutPage() {
   const settings = await getOrderingSettings();
   return (
-    <Section reveal={false}>
+    <Section reveal={false} first>
       <CheckoutHeading />
-      <ServiceNote className="mt-4 text-[15px] text-muted" />
+      <ServiceNote className="mt-5 text-muted" />
       <CheckoutForm settings={settings} />
     </Section>
   );

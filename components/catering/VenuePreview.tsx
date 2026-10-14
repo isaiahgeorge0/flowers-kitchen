@@ -90,7 +90,7 @@ export function VenuePreview({ event }: { event: CateringEvent }) {
       ref={ref}
       role="img"
       aria-label={describeRoom(event)}
-      className={`relative aspect-4/3 touch-pan-y overflow-hidden rounded-md bg-mountain lg:aspect-16/10 ${
+      className={`relative aspect-4/3 touch-pan-y overflow-hidden rounded-media bg-mountain lg:aspect-16/10 ${
         showScene && canRotate ? "cursor-grab active:cursor-grabbing" : ""
       }`}
     >
@@ -113,7 +113,7 @@ export function VenuePreview({ event }: { event: CateringEvent }) {
           {ready && (
             <p
               aria-hidden="true"
-              className="pointer-events-none absolute top-2 left-2 rounded-sm bg-cream/95 px-1.5 py-0.5 text-[11px] font-semibold text-pimento sm:top-3 sm:left-3 sm:px-2.5 sm:py-1 sm:text-[13px] md:top-4 md:left-4"
+              className="pointer-events-none absolute top-3 left-3 rounded-pill bg-paper-glass px-3 py-1.5 text-[12px] font-semibold text-pimento shadow-soft backdrop-blur-md sm:px-3.5 sm:text-[13px] md:top-4 md:left-4"
             >
               {tables} {tables === 1 ? "table" : "tables"}
               {service && <>{"\u00a0· "}{service}</>}

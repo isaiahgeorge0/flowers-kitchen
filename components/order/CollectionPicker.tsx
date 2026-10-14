@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { ErrorText } from "@/components/catering/fields";
 import { ChoiceCard } from "@/components/catering/fields";
 import { closedMessage } from "@/lib/ordering/hours";
 import { COLLECTION_ADDRESS } from "@/lib/ordering/limits";
 import type { SlotsState } from "@/lib/ordering/use-collection-slots";
 import type { OrderingState } from "@/lib/ordering/use-ordering-status";
+import { h3 } from "@/lib/typography";
 
 export type CollectionValue = { type: "asap" | "scheduled"; slot: string };
 
@@ -50,12 +52,12 @@ export function CollectionPicker({
 
   return (
     <section aria-labelledby="checkout-collection" className="mt-12">
-      <h2 id="checkout-collection" className="font-display text-[28px] font-semibold leading-tight">
+      <h2 id="checkout-collection" className={h3}>
         Collection
       </h2>
-      <p className="mt-1 text-muted">Collection only — {COLLECTION_ADDRESS}</p>
+      <p className="mt-1 text-[15px] text-muted">Collection only — {COLLECTION_ADDRESS}</p>
 
-      <fieldset className="mt-4">
+      <fieldset className="mt-5">
         <legend className="sr-only">When would you like to collect?</legend>
         <div className="grid gap-3">
           <ChoiceCard
@@ -88,9 +90,9 @@ export function CollectionPicker({
               Loading collection times…
             </p>
           ) : slots.status === "error" ? (
-            <p role="alert" className="text-sorrel">
-              We couldn&apos;t load collection times. Please refresh the page and try again.
-            </p>
+            <div role="alert">
+              <ErrorText>We couldn&apos;t load collection times. Please refresh the page and try again.</ErrorText>
+            </div>
           ) : bookable.length === 0 ? (
             <p role="status" className="text-muted">
               Every collection time is taken at the moment. Please try again later.
@@ -98,7 +100,7 @@ export function CollectionPicker({
           ) : (
             <>
               <fieldset className="min-w-0">
-                <legend className="font-semibold">Day</legend>
+                <legend className="text-[15px] font-semibold">Day</legend>
                 <div className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
                   {days.map((candidate) => {
                     const available = candidate.slots.some((slot) => !slot.full);
@@ -107,7 +109,7 @@ export function CollectionPicker({
                     return (
                       <label
                         key={candidate.date}
-                        className="relative flex min-h-16 min-w-[5.5rem] shrink-0 cursor-pointer flex-col items-center justify-center rounded-sm border border-hairline bg-paper px-3 py-2 text-center transition-colors duration-300 ease-out has-checked:border-sorrel has-checked:shadow-[inset_0_0_0_1px_var(--color-sorrel)] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus-ring)] has-disabled:cursor-not-allowed has-disabled:bg-cream has-disabled:text-muted"
+                        className="relative flex min-h-14 min-w-24 shrink-0 cursor-pointer flex-col items-center justify-center rounded-pill border border-hairline bg-paper px-4 py-2 text-center transition-colors duration-300 ease-out hover:border-muted/60 has-checked:border-sorrel has-checked:bg-sorrel/[0.07] has-checked:text-sorrel has-checked:shadow-[inset_0_0_0_1px_var(--color-sorrel)] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus-ring)] has-disabled:cursor-not-allowed has-disabled:bg-cream has-disabled:text-muted"
                       >
                         <input
                           type="radio"
@@ -131,12 +133,12 @@ export function CollectionPicker({
 
               {activeDay && (
                 <fieldset className="mt-5">
-                  <legend className="font-semibold">Times {activeDay.label === "Today" || activeDay.label === "Tomorrow" ? "" : "on "}{onDay(activeDay.label)}</legend>
-                  <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  <legend className="text-[15px] font-semibold">Times {activeDay.label === "Today" || activeDay.label === "Tomorrow" ? "" : "on "}{onDay(activeDay.label)}</legend>
+                  <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
                     {activeDay.slots.map((slot) => (
                       <label
                         key={slot.start}
-                        className="relative flex min-h-12 cursor-pointer flex-col items-center justify-center rounded-sm border border-hairline bg-paper px-2 py-1 text-center tabular-nums transition-colors duration-300 ease-out has-checked:border-sorrel has-checked:bg-sorrel has-checked:text-cream has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus-ring)] has-disabled:cursor-not-allowed has-disabled:border-hairline has-disabled:bg-cream has-disabled:text-muted has-disabled:opacity-70"
+                        className="relative flex min-h-11 cursor-pointer flex-col items-center justify-center rounded-pill border border-hairline bg-paper px-2 py-1 text-center tabular-nums transition-colors duration-300 ease-out hover:border-muted/60 has-checked:border-sorrel has-checked:bg-sorrel has-checked:text-cream has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus-ring)] has-disabled:cursor-not-allowed has-disabled:border-hairline has-disabled:bg-cream has-disabled:text-muted has-disabled:opacity-70"
                       >
                         <input
                           type="radio"
@@ -147,17 +149,17 @@ export function CollectionPicker({
                           onChange={() => onChange({ type: "scheduled", slot: slot.start })}
                           className="sr-only"
                         />
-                        <span className={`text-[17px] font-semibold ${slot.full ? "line-through decoration-1" : ""}`}>
+                        <span className={`text-[16px] font-semibold leading-tight ${slot.full ? "line-through decoration-1" : ""}`}>
                           {slot.time}
                         </span>
-                        {slot.full && <span className="text-[12px] uppercase tracking-[0.08em]">Full</span>}
+                        {slot.full && <span className="text-[11px] uppercase leading-tight tracking-[0.08em]">Full</span>}
                       </label>
                     ))}
                   </div>
                 </fieldset>
               )}
               {chosen && chosenDay && (
-                <p className="mt-4 text-[17px]" role="status">
+                <p className="mt-5 rounded-input bg-sorrel/[0.06] px-4 py-3 text-[17px]" role="status">
                   Collect{chosenDay.label === "Today" || chosenDay.label === "Tomorrow" ? " " : " on "}
                   <strong className="font-semibold">{onDay(chosenDay.label)}</strong> at{" "}
                   <strong className="font-semibold">{chosen.time}</strong>.

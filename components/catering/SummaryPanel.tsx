@@ -37,7 +37,7 @@ export function SummaryPanel({ event }: { event: CateringEvent }) {
   return (
     <section
       aria-labelledby="catering-summary-heading"
-      className="rounded-sm border border-hairline bg-paper p-6"
+      className="rounded-card border border-hairline bg-paper p-5 md:p-6"
     >
       <h2
         id="catering-summary-heading"

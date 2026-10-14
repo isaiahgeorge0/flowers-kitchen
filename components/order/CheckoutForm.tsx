@@ -1,10 +1,11 @@
 "use client";
 
+import { CircleAlert, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { checkoutAction, type CheckoutFormState } from "@/app/(site)/order/checkout/actions";
 import { Button, buttonClasses } from "@/components/Button";
-import { inputClasses } from "@/components/catering/fields";
+import { ErrorText, hintClasses, inputClasses, labelClasses } from "@/components/catering/fields";
 import { Eyebrow } from "@/components/Eyebrow";
 import { cart, cartTotals, checkoutNonce, useCart, useHydrated } from "@/lib/ordering/cart-store";
 import { CUSTOMER_LIMITS, type CustomerValues } from "@/lib/ordering/customer";
@@ -13,7 +14,7 @@ import { readOrderSource } from "@/lib/ordering/order-source";
 import type { OrderingSettings } from "@/lib/ordering/types";
 import { useCollectionSlots, validSlot } from "@/lib/ordering/use-collection-slots";
 import { useOrderingStatus } from "@/lib/ordering/use-ordering-status";
-import { h1 } from "@/lib/typography";
+import { h1, h3 } from "@/lib/typography";
 import { CollectionPicker, type CollectionValue } from "./CollectionPicker";
 import { OrderingBanner } from "./OrderingBanner";
 
@@ -77,8 +78,8 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
 
   if (lines.length === 0) {
     return (
-      <div className="mt-10 max-w-xl rounded-sm border border-hairline bg-paper px-6 py-8">
-        <p className="font-display text-2xl font-semibold">Your basket is empty</p>
+      <div className="mt-10 max-w-xl rounded-card border border-hairline bg-paper p-6 md:p-8">
+        <p className={h3}>Your basket is empty</p>
         <p className="mt-2 text-muted">Choose a box first, then come back here to pay.</p>
         <Link href="/order" className={buttonClasses("primary", "md", "mt-6")}>
           See the boxes
@@ -111,15 +112,18 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
             ref={errorRef}
             tabIndex={-1}
             role="alert"
-            className="mb-8 rounded-sm border border-hairline border-l-4 border-l-sorrel bg-paper px-5 py-4"
+            className="mb-8 flex items-start gap-3 rounded-card border border-sorrel bg-sorrel/[0.05] px-5 py-4"
           >
-            <p className="font-semibold">{state.message}</p>
-            {state.cart && <p className="mt-1 text-[15px] text-muted">Your basket has been updated with today&apos;s prices.</p>}
+            <CircleAlert aria-hidden strokeWidth={1.5} className="mt-0.5 size-5 shrink-0 text-sorrel" />
+            <div>
+              <p className="font-semibold text-sorrel">{state.message}</p>
+              {state.cart && <p className="mt-1 text-[15px] text-muted">Your basket has been updated with today&apos;s prices.</p>}
+            </div>
           </div>
         )}
 
         <fieldset>
-          <legend className="font-display text-[28px] font-semibold leading-tight">Your details</legend>
+          <legend className={h3}>Your details</legend>
           <div className="mt-6 grid gap-6">
             {fields.map((field) => {
               const error = state.fieldErrors[field.name];
@@ -128,11 +132,11 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
                 .join(" ");
               return (
                 <div key={field.name}>
-                  <label htmlFor={`checkout-${field.name}`} className="block font-semibold">
+                  <label htmlFor={`checkout-${field.name}`} className={labelClasses}>
                     {field.label}
                   </label>
                   {field.hint && (
-                    <p id={`checkout-${field.name}-hint`} className="mt-1 text-[15px] text-muted">
+                    <p id={`checkout-${field.name}-hint`} className={hintClasses}>
                       {field.hint}
                     </p>
                   )}
@@ -151,19 +155,19 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
                     className={inputClasses}
                   />
                   {error && (
-                    <p id={`checkout-${field.name}-error`} className="mt-2 text-[15px] text-sorrel">
+                    <ErrorText id={`checkout-${field.name}-error`} className="mt-2">
                       {error}
-                    </p>
+                    </ErrorText>
                   )}
                 </div>
               );
             })}
 
             <div>
-              <label htmlFor="checkout-note" className="block font-semibold">
+              <label htmlFor="checkout-note" className={labelClasses}>
                 Note for the kitchen <span className="font-normal text-muted">(optional)</span>
               </label>
-              <p id="checkout-note-hint" className="mt-1 text-[15px] text-muted">
+              <p id="checkout-note-hint" className={hintClasses}>
                 Allergies, or anything we should know.
               </p>
               <textarea
@@ -178,9 +182,9 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
                 className={`${inputClasses} resize-y`}
               />
               {state.fieldErrors.note && (
-                <p id="checkout-note-error" className="mt-2 text-[15px] text-sorrel">
+                <ErrorText id="checkout-note-error" className="mt-2">
                   {state.fieldErrors.note}
-                </p>
+                </ErrorText>
               )}
             </div>
           </div>
@@ -194,18 +198,20 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
           slots={slots}
         />
 
-        <div className="mt-8 border-l-2 border-hairline pl-4 text-[15px]">
-          <p className="font-semibold">Before you pay: allergens</p>
-          <p className="mt-1 text-muted">
-            Please check the allergens listed on each box. If you have an allergy, tell us in the note above. All our food is halal.
-          </p>
-        </div>
-
-        <div className="mt-8">
-          {ordering && !ordering.canOrder && (
+        {ordering && !ordering.canOrder && (
+          <div className="mt-10">
             <OrderingBanner state={ordering} leadMinutes={settings.leadMinutes} daysAhead={settings.daysAhead} />
-          )}
-          <Button type="submit" className="mt-4 w-full" disabled={!canPay} aria-describedby={needsSlot ? "checkout-needs-slot" : undefined}>
+          </div>
+        )}
+
+        <div className="mt-10 rounded-card border border-hairline bg-paper p-5 md:p-6">
+          <div className="text-[15px]">
+            <p className="font-semibold">Before you pay: allergens</p>
+            <p className="mt-1 text-muted">
+              Please check the allergens listed on each box. If you have an allergy, tell us in the note above. All our food is halal.
+            </p>
+          </div>
+          <Button type="submit" size="lg" className="mt-6 w-full" disabled={!canPay} aria-describedby={needsSlot ? "checkout-needs-slot" : undefined}>
             {pending ? "Taking you to payment…" : `Pay ${formatPence(totalPence)}`}
           </Button>
           {needsSlot && ordering?.canOrder && (
@@ -213,22 +219,23 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
               Choose a collection time to continue.
             </p>
           )}
-          <p className="mt-3 text-center text-[15px] text-muted">
+          <p className="mt-3 text-center text-[15px] text-balance text-muted">
+            <LockKeyhole aria-hidden strokeWidth={1.5} className="mr-1.5 inline size-4 -translate-y-px align-middle" />
             Secure payment by Stripe. Card, Apple Pay or Google Pay.
           </p>
         </div>
       </div>
 
       <aside aria-labelledby="checkout-summary" className="order-1 lg:order-2">
-        <div className="rounded-sm border border-hairline bg-paper px-6 py-6 lg:sticky lg:top-28">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 id="checkout-summary" className="font-display text-[28px] font-semibold leading-tight">
+        <div className="rounded-card border border-hairline bg-paper p-5 md:p-6 lg:sticky lg:top-28">
+          <div className="flex items-center justify-between gap-4">
+            <h2 id="checkout-summary" className={h3}>
               Your order
             </h2>
             <button
               type="button"
               onClick={cart.openDrawer}
-              className="inline-flex min-h-11 items-center text-[15px] font-semibold text-pimento underline decoration-sorrel underline-offset-4"
+              className={buttonClasses("ghost", "md", "-mr-1 decoration-sorrel")}
             >
               Edit
             </button>
@@ -262,7 +269,7 @@ export function CheckoutHeading() {
   return (
     <div className="max-w-3xl">
       <Eyebrow>Checkout</Eyebrow>
-      <h1 className={`mt-6 ${h1}`}>Pay and collect.</h1>
+      <h1 className={`mt-3 ${h1}`}>Pay and collect.</h1>
     </div>
   );
 }

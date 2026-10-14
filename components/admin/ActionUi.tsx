@@ -22,7 +22,7 @@ export function ActionFeedback({
         ) : (
           <p
             role="alert"
-            className="rounded-sm border border-sorrel bg-paper px-4 py-3 text-[15px] text-sorrel"
+            className="rounded-card border border-sorrel bg-paper px-4 py-3 text-[15px] text-sorrel"
           >
             {state.message}
           </p>
@@ -35,13 +35,13 @@ export function SubmitButton({
   children,
   pendingLabel = "Saving…",
   variant = "primary",
-  size = "sm",
+  size = "md",
   className = "",
 }: {
   children: ReactNode;
   pendingLabel?: string;
   variant?: "primary" | "secondary";
-  size?: "sm" | "md";
+  size?: "md" | "lg";
   className?: string;
 }) {
   const { pending } = useFormStatus();

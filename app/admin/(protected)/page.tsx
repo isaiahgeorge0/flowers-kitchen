@@ -156,7 +156,7 @@ async function DashboardContent() {
         )}
 
         <div className="mt-6">
-          <LinkButton href="/admin/leads" variant="secondary" size="sm">
+          <LinkButton href="/admin/leads" variant="secondary">
             All catering leads
           </LinkButton>
         </div>

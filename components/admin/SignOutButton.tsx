@@ -10,7 +10,7 @@ export function SignOutButton({ tone = "mountain" }: { tone?: "mountain" | "ligh
     <form action={signOutAction}>
       <button
         type="submit"
-        className={`inline-flex min-h-11 w-full items-center justify-center rounded-sm border px-4 text-[15px] font-semibold uppercase leading-none tracking-[0.08em] transition-colors duration-300 ease-out ${colours}`}
+        className={`inline-flex min-h-11 w-full items-center justify-center rounded-pill border px-4 text-[15px] font-semibold uppercase leading-none tracking-[0.08em] transition-colors duration-300 ease-out ${colours}`}
       >
         Sign out
       </button>

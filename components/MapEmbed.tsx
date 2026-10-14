@@ -9,7 +9,7 @@ export function MapEmbed({ className = "" }: { className?: string }) {
       title={`Map of ${address}`}
       loading="lazy"
       referrerPolicy="no-referrer-when-downgrade"
-      className={`w-full rounded-md border border-hairline ${className}`}
+      className={`w-full rounded-media border border-hairline ${className}`}
     />
   );
 }

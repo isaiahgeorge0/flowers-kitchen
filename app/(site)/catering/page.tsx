@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { CateringBuilder } from "@/components/catering/CateringBuilder";
-import { Eyebrow } from "@/components/Eyebrow";
 import { NumberedSteps } from "@/components/NumberedSteps";
 import { Reveal } from "@/components/Reveal";
-import { Section } from "@/components/Section";
-import { h1, h2 } from "@/lib/typography";
+import { Section, SectionHeader } from "@/components/Section";
 
 export const metadata: Metadata = { title: "Catering" };
 
@@ -17,24 +15,24 @@ const howItWorks = [
 export default function CateringPage() {
   return (
     <>
-      <Section reveal={false}>
-        <Reveal className="max-w-3xl">
-          <Eyebrow>Catering</Eyebrow>
-          <h1 className={`mt-6 ${h1}`}>Plan your event.</h1>
-          <p className="mt-6 text-lg text-muted">
-            Tell us about your occasion and watch it come together. We&apos;ll
-            come back to you with a quote.
-          </p>
+      <Section reveal={false} first>
+        <Reveal>
+          <SectionHeader
+            level={1}
+            eyebrow="Catering"
+            title="Plan your event."
+            intro="Tell us about your occasion and watch it come together. We'll come back to you with a quote."
+          />
         </Reveal>
 
-        <div className="mt-12 md:mt-16">
+        <div className="mt-10 md:mt-14">
           <CateringBuilder />
         </div>
       </Section>
 
       <Section tone="paper">
-        <h2 className={h2}>How it works</h2>
-        <NumberedSteps steps={howItWorks} className="mt-12" />
+        <SectionHeader eyebrow="Three steps" title="How it works" tone="paper" />
+        <NumberedSteps steps={howItWorks} className="mt-10" />
       </Section>
     </>
   );

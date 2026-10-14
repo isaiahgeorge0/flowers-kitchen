@@ -13,11 +13,23 @@
   --color-hairline: #d9cbb4;
   --color-mountain-muted: #c9bfae;
   --color-mountain-focus: #d4a55e;
+  /* Hover shades: the brand colour pushed towards pimento, not a new hue. */
+  --color-sorrel-deep: color-mix(in oklab, #8f1d2c 84%, #2b1b16);
+  --color-paper-glass: rgb(251 246 238 / 0.95);
 
-  --radius-sm: 2px;
-  --radius-md: 6px;
+  /* Shape system: every corner in the site comes from these four. */
+  --radius-*: initial;
+  --radius-pill: 9999px;
+  --radius-card: 16px;
+  --radius-input: 12px;
+  --radius-media: 20px;
+
+  --shadow-*: initial;
+  --shadow-soft: 0 8px 24px -14px rgb(43 27 22 / 0.28);
+  --shadow-lift: 0 16px 36px -20px rgb(43 27 22 / 0.38);
 
   --container-content: 75rem;
+  --container-measure: 40rem;
 
   --animate-fade-rise: fade-rise 350ms ease-out both;
 
@@ -31,6 +43,12 @@
       transform: translateY(0);
     }
   }
+}
+
+/* Faint hibiscus for photo placeholders: the mono mark inlined as a mask, so it costs no request. */
+@utility hibiscus-watermark {
+  background-color: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 375.9 375.9%22 width=%22375.9%22 height=%22375.9%22%3E%3Cg transform=%22translate%28-12.05,-12.05%29%22%3E%3Cg transform=%22translate%28200.0,200.0%29 scale%282.6%29 rotate%28-18%29%22%3E%3Cg fill=%22#FFFFFF%22%3E%3Cpath d=%22M0,-6 C-13,-14 -27,-30 -25,-47 C-23,-60 -12,-66 -5,-60 C-3,-58 -1,-56 0,-56 C1,-56 3,-58 5,-60 C12,-66 23,-60 25,-47 C27,-30 13,-14 0,-6 Z%22 transform=%22rotate%280%29%22/%3E%3Cpath d=%22M0,-6 C-13,-14 -27,-30 -25,-47 C-23,-60 -12,-66 -5,-60 C-3,-58 -1,-56 0,-56 C1,-56 3,-58 5,-60 C12,-66 23,-60 25,-47 C27,-30 13,-14 0,-6 Z%22 transform=%22rotate%2872%29%22/%3E%3Cpath d=%22M0,-6 C-13,-14 -27,-30 -25,-47 C-23,-60 -12,-66 -5,-60 C-3,-58 -1,-56 0,-56 C1,-56 3,-58 5,-60 C12,-66 23,-60 25,-47 C27,-30 13,-14 0,-6 Z%22 transform=%22rotate%28144%29%22/%3E%3Cpath d=%22M0,-6 C-13,-14 -27,-30 -25,-47 C-23,-60 -12,-66 -5,-60 C-3,-58 -1,-56 0,-56 C1,-56 3,-58 5,-60 C12,-66 23,-60 25,-47 C27,-30 13,-14 0,-6 Z%22 transform=%22rotate%28216%29%22/%3E%3Cpath d=%22M0,-6 C-13,-14 -27,-30 -25,-47 C-23,-60 -12,-66 -5,-60 C-3,-58 -1,-56 0,-56 C1,-56 3,-58 5,-60 C12,-66 23,-60 25,-47 C27,-30 13,-14 0,-6 Z%22 transform=%22rotate%28288%29%22/%3E%3C/g%3E%3Cg fill=%22#FFFFFF%22%3E%3Cpath d=%22M-2.2,-4 C4,-22 14,-38 30,-50 L32.2,-47.6 C17,-36 7,-20 2.2,-3 Z%22/%3E%3Ccircle cx=%2233.0%22 cy=%22-52.0%22 r=%223.4%22/%3E%3Ccircle cx=%2240.0%22 cy=%22-50.0%22 r=%222.6%22/%3E%3Ccircle cx=%2230.0%22 cy=%22-59.0%22 r=%222.6%22/%3E%3Ccircle cx=%2237.0%22 cy=%22-58.0%22 r=%222.2%22/%3E%3Ccircle cx=%2226.0%22 cy=%22-55.0%22 r=%222.0%22/%3E%3Ccircle cx=%220%22 cy=%220%22 r=%227%22/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 @theme inline {

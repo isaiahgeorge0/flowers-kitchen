@@ -1,14 +1,14 @@
+import { Phone, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Eyebrow } from "@/components/Eyebrow";
 import { InstagramLink } from "@/components/InstagramLink";
 import { MapEmbed } from "@/components/MapEmbed";
 import { OpeningHoursTable } from "@/components/OpeningHoursTable";
-import { Section } from "@/components/Section";
+import { Section, SectionHeader } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
-import { address, orderHref, orderSteps } from "@/lib/site";
-import { h1, h2, h3 } from "@/lib/typography";
+import { addressHeading, orderHref, orderSteps, phone } from "@/lib/site";
+import { h3, textLink } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "Find Us" };
 
@@ -47,29 +47,43 @@ const faqs: { question: string; answer: ReactNode }[] = [
 export default function FindUsPage() {
   return (
     <>
-      <Section className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+      <Section first className="grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
         <div>
-          <Eyebrow>Find us</Eyebrow>
-          <h1 className={`mt-6 ${h1}`}>{address}</h1>
-          <p className="mt-6 text-lg">
-            Collection only.{" "}
-            <Link href={orderHref} className="font-semibold underline decoration-sorrel underline-offset-4">
-              Order online
-            </Link>{" "}
-            and collect from us.
-          </p>
-          <InstagramLink className="text-lg" />
+          <SectionHeader
+            level={1}
+            eyebrow="Find us"
+            title={addressHeading}
+            intro={
+              <>
+                Collection only.{" "}
+                <Link href={orderHref} className="font-semibold text-pimento underline decoration-sorrel underline-offset-4">
+                  Order online
+                </Link>{" "}
+                and collect from us.
+              </>
+            }
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-x-8">
+            <a href={phone.href} className={`${textLink} gap-2.5 decoration-sorrel tabular-nums`}>
+              <Phone aria-hidden strokeWidth={1.5} className="size-[18px] text-sorrel" />
+              <span>
+                <span className="sr-only">Call us on </span>
+                {phone.display}
+              </span>
+            </a>
+            <InstagramLink />
+          </div>
 
           <h2 className={`mt-12 ${h3}`}>Opening hours</h2>
           <OpeningHoursTable className="mt-4 max-w-md" />
 
           <h2 className={`mt-12 ${h3}`}>How to order</h2>
-          <ol className="mt-4 flex flex-col gap-4">
+          <ol className="mt-5 flex flex-col gap-4">
             {orderSteps.map((step, i) => (
-              <li key={step} className="flex gap-4">
+              <li key={step} className="flex items-center gap-4">
                 <span
                   aria-hidden
-                  className="w-6 shrink-0 font-display text-2xl font-semibold leading-[1.1] text-sorrel"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-pill border border-hairline font-display text-lg font-semibold text-sorrel"
                 >
                   {i + 1}
                 </span>
@@ -78,7 +92,7 @@ export default function FindUsPage() {
             ))}
           </ol>
 
-          <ServiceNote className="mt-10 text-[15px] text-muted" />
+          <ServiceNote className="mt-10 text-muted" />
         </div>
 
         <MapEmbed className="aspect-4/5 sm:aspect-4/3 lg:aspect-auto lg:h-full lg:min-h-[36rem]" />
@@ -86,25 +100,17 @@ export default function FindUsPage() {
 
       <Section tone="paper">
         <div className="mx-auto max-w-3xl">
-          <h2 className={h2}>Frequently asked questions</h2>
+          <SectionHeader tone="paper" eyebrow="Good to know" title="Frequently asked questions" />
           <div className="mt-10 border-t border-hairline">
             {faqs.map((faq) => (
               <details key={faq.question} className="group border-b border-hairline">
                 <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-5 font-display text-[22px] font-semibold leading-snug md:text-2xl [&::-webkit-details-marker]:hidden">
                   {faq.question}
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 24 24"
-                    className="size-5 shrink-0 text-sorrel"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M4 12h16" />
-                    <path d="M12 4v16" className="group-open:hidden" />
-                  </svg>
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-pill border border-hairline text-sorrel transition-colors duration-300 ease-out group-open:border-sorrel">
+                    <Plus aria-hidden strokeWidth={1.5} className="size-[18px] transition-transform duration-300 ease-out group-open:rotate-45" />
+                  </span>
                 </summary>
-                <p className="max-w-2xl pb-6 text-lg">{faq.answer}</p>
+                <p className="max-w-measure pb-6 text-lg">{faq.answer}</p>
               </details>
             ))}
           </div>

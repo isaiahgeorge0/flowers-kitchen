@@ -13,7 +13,7 @@ import { formatPence } from "@/lib/ordering/money";
 import { formatClock, readOrder, type OrderDetail } from "@/lib/ordering/orders";
 import { formatCollectionLong } from "@/lib/ordering/schedule";
 import { supabase } from "@/lib/supabase-server";
-import { h1 } from "@/lib/typography";
+import { h1, h3 } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 
@@ -21,7 +21,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export default function ConfirmationPage({ params }: PageProps<"/order/confirmation/[token]">) {
   return (
-    <Section reveal={false}>
+    <Section reveal={false} first>
       <Suspense fallback={<p className="text-lg text-muted">Loading your order…</p>}>
         <Confirmation params={params} />
       </Suspense>
@@ -57,7 +57,7 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
     return (
       <div className="max-w-2xl">
         <Eyebrow>Order #{order.orderNumber}</Eyebrow>
-        <h1 className={`mt-6 ${h1}`}>{refunded ? "This order was cancelled." : "This order wasn't paid."}</h1>
+        <h1 className={`mt-3 ${h1}`}>{refunded ? "This order was cancelled." : "This order wasn't paid."}</h1>
         <p className="mt-6 text-lg">
           {refunded
             ? "We've refunded your payment. Refunds usually take 5–10 working days to reach your account."
@@ -74,7 +74,7 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
     return (
       <div className="max-w-2xl">
         <Eyebrow>Order #{order.orderNumber}</Eyebrow>
-        <h1 className={`mt-6 ${h1}`}>Nearly there.</h1>
+        <h1 className={`mt-3 ${h1}`}>Nearly there.</h1>
         <div className="mt-6">
           <PaymentStatusPoller
             token={token}
@@ -105,17 +105,17 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
       <ClearBasket />
       <div>
         <Eyebrow>Order confirmed</Eyebrow>
-        <h1 className={`mt-6 ${h1}`}>Thank you, {firstName}.</h1>
-        <p className="mt-6 text-lg">{line}</p>
+        <h1 className={`mt-3 ${h1}`}>Thank you, {firstName}.</h1>
+        <p className="mt-4 max-w-measure text-lg text-muted">{line}</p>
 
-        <dl className="mt-10 grid gap-6 border-t border-hairline pt-8 sm:grid-cols-2">
-          <div>
+        <dl className="mt-10 grid gap-px overflow-hidden rounded-card border border-hairline bg-hairline sm:grid-cols-2">
+          <div className="bg-paper p-5 md:p-6">
             <dt className="text-[13px] font-semibold uppercase tracking-[0.32em] text-sorrel">Order number</dt>
             <dd className="mt-2 font-display text-[44px] font-semibold leading-none tracking-[-0.015em]">
               #{order.orderNumber}
             </dd>
           </div>
-          <div>
+          <div className="bg-paper p-5 md:p-6">
             <dt className="text-[13px] font-semibold uppercase tracking-[0.32em] text-sorrel">
               {order.scheduledFor ? "Collection time" : "Collect at"}
             </dt>
@@ -131,17 +131,17 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
           </div>
         </dl>
 
-        <p className="mt-8 text-lg">
+        <p className="mt-8 max-w-measure text-lg">
           Collect from <strong className="font-semibold">{COLLECTION_ADDRESS}</strong>. Give us your order number when
           you arrive.
         </p>
         <p className="mt-4 text-[17px] text-muted">We&apos;ve emailed your receipt to {order.customerEmail}.</p>
-        <ServiceNote className="mt-6 text-[15px] text-muted" />
+        <ServiceNote className="mt-6 text-muted" />
       </div>
 
       <aside aria-labelledby="confirmation-items">
-        <div className="rounded-sm border border-hairline bg-paper px-6 py-6">
-          <h2 id="confirmation-items" className="font-display text-[28px] font-semibold leading-tight">
+        <div className="rounded-card border border-hairline bg-paper p-5 md:p-6">
+          <h2 id="confirmation-items" className={h3}>
             Your order
           </h2>
           <ul className="mt-4 divide-y divide-hairline border-y border-hairline">

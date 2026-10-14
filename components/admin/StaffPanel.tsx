@@ -64,7 +64,7 @@ function StaffRowEditor({
           <p className="break-all text-[15px] text-muted">{row.email ?? "No email on file"}</p>
         </div>
         <span
-          className={`inline-flex min-h-7 items-center rounded-sm border px-2.5 text-[13px] font-semibold uppercase leading-none tracking-[0.08em] ${
+          className={`inline-flex min-h-7 items-center rounded-pill border px-2.5 text-[13px] font-semibold uppercase leading-none tracking-[0.08em] ${
             row.isActive ? "border-mountain bg-mountain text-cream" : "border-hairline bg-cream text-muted"
           }`}
         >

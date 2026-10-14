@@ -27,16 +27,24 @@ On mountain/sorrel backgrounds, text is cream (not white); muted text on mountai
 Focus ring: 2px solid mountain on light backgrounds, #D4A55E on mountain.
 
 ## Type
-- Fraunces (next/font/google, weights 500 & 600) — headlines, prices. Display 64–88px/1.0, H1 44px, H2 30–40px. Letter-spacing -0.015em on large sizes.
+- Fraunces (next/font/google, weights 500 & 600) — headlines, prices. Display 64–88px/0.95–1.0, H1 44px, H2 32–40px, H3 22–24px; tighter leading on large sizes. Letter-spacing -0.015em on large sizes. The scale lives in `lib/typography.ts` — use it rather than ad-hoc sizes.
 - DM Sans (weights 400, 500, 600) — everything else. Body 17–18px / 1.6.
-- Eyebrow: DM Sans 600, 13px, uppercase, letter-spacing 0.32em, in sorrel (allspice on mountain). Put one above every H1/hero headline.
+- Eyebrow: DM Sans 600, 13px, uppercase, letter-spacing 0.32em, in sorrel (#C9BFAE on mountain, with allspice rules — allspice text fails contrast at this size). Put one above every H1/hero headline.
 - Buttons: DM Sans 600, 15px, uppercase, letter-spacing 0.08em.
 - Never more than two weights per section. No italics except a family quote.
 
 ## Layout
-- Generous whitespace: ~96px between sections on desktop, ~64px on mobile. If it feels full, remove something.
-- Corners nearly square: 2px on buttons, inputs, cards; 6px on photos. Fully round only for avatar/roundel.
-- Borders over shadows. No gradients except a dark overlay on photos for text legibility.
+- Generous whitespace on an 8px grid: 128px between major sections on desktop, 80px on mobile. Alternate cream and paper backgrounds to separate sections rather than adding borders. If it feels full, remove something.
+- Section pattern: eyebrow → heading → short intro → content. Gaps: eyebrow–heading 12px, heading–intro 16px, intro–content 40px. Body text max ~640px wide.
+- Shape system — use the tokens in `app/globals.css`, never a hard-coded radius:
+  | token | value | use |
+  | --- | --- | --- |
+  | `rounded-pill` (`--radius-pill`) | fully round | buttons, nav, chips, toggles, badges, avatar/roundel |
+  | `rounded-card` (`--radius-card`) | 16px | cards, panels, sheets, drawers, dialogs |
+  | `rounded-input` (`--radius-input`) | 12px | inputs, textareas; photos inset inside a padded card |
+  | `rounded-media` (`--radius-media`) | 20px | photos, photo placeholders, maps, the 3D room |
+- Borders over shadows. The only shadows are `shadow-soft` (floating header pills) and `shadow-lift` (card hover, sheets). No gradients except a dark overlay on photos for text legibility, and the cream-to-transparent fade behind the scrolled header pills.
+- Buttons: one `Button` component — primary (sorrel), secondary (pimento outline), ghost (underline on hover), on-dark (cream outline); md 44px, lg 52px; optional trailing arrow. Never full-width on desktop except in a sheet or card footer.
 - Signature detail: short horizontal rules either side of tracked capitals (like "— KITCHEN —" in the logo).
 - Motion: fades and 8–16px rises, 300–400ms ease-out. Nothing bounces. Respect prefers-reduced-motion.
 
@@ -48,7 +56,7 @@ Focus ring: 2px solid mountain on light backgrounds, #D4A55E on mountain.
 - Always alt="Flowers Kitchen". Never recolour, stretch, add effects, or rebuild the logo in CSS/text.
 
 ## Copy voice
-Warm, proud, plain-spoken. "We" (the family) to "you". British spelling. Short sentences. No emoji, no exclamation marks in headings. Say "boxes", never "meals" or "dishes". Always state plainly near calls to action: Halal · Collection only · Pre-order.
+Warm, proud, plain-spoken. "We" (the family) to "you". British spelling. Short sentences. No emoji, no exclamation marks in headings. Say "boxes", never "meals" or "dishes". Always state plainly near calls to action: Halal · Collection only · Order online (the `serviceNotes` constant in `lib/site.ts`).
 Unknowns stay as obvious placeholders — prices "£XX", hours "00:00", founding year "XXXX". Never invent prices, hours, reviews, stats or awards.
 
 ## Accessibility

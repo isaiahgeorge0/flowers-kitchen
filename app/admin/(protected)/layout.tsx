@@ -57,7 +57,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
       <main id="main" className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-12">
         <div className="mx-auto max-w-5xl has-[[data-wide]]:max-w-[1600px]">
           {user.mustChangePassword && (
-            <div className="mb-8 rounded-sm border border-hairline border-l-sorrel border-l-4 bg-paper px-5 py-4">
+            <div className="mb-8 rounded-card border border-hairline border-l-sorrel border-l-4 bg-paper px-5 py-4">
               <p className="font-semibold">You&rsquo;re using a temporary password.</p>
               <p className="mt-1 text-muted">
                 Choose your own on your{" "}

@@ -24,6 +24,7 @@ Placeholders still on the site, and decisions the owners need to make. Nothing h
 
 ## Contact and print
 
-- **Shop phone number.** Not on the site yet. When confirmed, set `shopPhone` in `lib/site.ts`; it then appears in the cancellation and "ready" emails (today they say "reply to this email").
+- **Shop phone number.** The header, footer and Find us show **01632 960000**, an Ofcom fictional number. Replace `phone` in `lib/site.ts` with the real number (display text and `tel:` link). Also set `shopPhone` there so it appears in the cancellation and "ready" emails (today they say "reply to this email").
+- **Privacy policy and terms.** `/privacy` and `/terms` are placeholders ("Policy to follow — XXXX"). Add the real wording before launch.
 - **Web address on the QR artwork.** The QR code itself links to `NEXT_PUBLIC_SITE_URL/order?src=qr`. The printed text under it reads "flowerskitchen.XXX/order" (`QR_DISPLAY_URL` in `lib/qr/order-qr.ts`). Update it once the domain is live, and set `NEXT_PUBLIC_SITE_URL` to the real https address before printing.
 - **Stripe business details.** Business name, statement descriptor ("FLOWERS KITCHEN") and support email in the Stripe dashboard.

@@ -59,7 +59,7 @@ export function PauseControls({
 
   return (
     <div
-      className={`rounded-sm border px-4 py-3 ${paused ? "border-sorrel border-l-4 bg-paper" : "border-hairline bg-paper"}`}
+      className={`rounded-card border px-4 py-3 ${paused ? "border-sorrel border-l-4 bg-paper" : "border-hairline bg-paper"}`}
       aria-busy={pending}
     >
       {paused && end !== null && now !== null ? (

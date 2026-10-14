@@ -1,13 +1,13 @@
 // Copy to be reviewed with the family before launch.
 import type { Metadata } from "next";
-import { LinkButton } from "@/components/Button";
+import { ButtonGroup, LinkButton } from "@/components/Button";
 import { Eyebrow } from "@/components/Eyebrow";
 import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
-import { Section } from "@/components/Section";
+import { Section, SectionHeader } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
 import { orderHref } from "@/lib/site";
-import { display, h2, h3 } from "@/lib/typography";
+import { display, h3 } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "Our Story" };
 
@@ -53,10 +53,10 @@ const values = [
 export default function OurStoryPage() {
   return (
     <>
-      <Section reveal={false} className="flex flex-col gap-16 md:gap-24">
+      <Section reveal={false} first>
         <Reveal>
           <Eyebrow>Our story</Eyebrow>
-          <h1 className={`mt-6 max-w-4xl ${display}`}>
+          <h1 className={`mt-3 max-w-4xl ${display}`}>
             Recipes passed down. Cooked by the next generation.
           </h1>
           <Photo
@@ -68,48 +68,49 @@ export default function OurStoryPage() {
           />
         </Reveal>
 
-        {chapters.map((chapter, i) => (
-          <Reveal
-            key={chapter.title}
-            className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16"
-          >
-            <div className={i % 2 === 1 ? "lg:order-last" : ""}>
-              <Eyebrow>{chapter.eyebrow}</Eyebrow>
-              <h2 className={`mt-6 ${h2}`}>{chapter.title}</h2>
-              <p className="mt-6 max-w-lg text-lg">{chapter.body}</p>
-            </div>
-            <Photo
-              alt={chapter.alt}
-              aspect="4/3"
-              caption={chapter.caption}
-              sizes="(min-width: 1024px) 560px, 100vw"
-            />
-          </Reveal>
-        ))}
+        <div className="mt-20 flex flex-col gap-20 md:mt-32 md:gap-32">
+          {chapters.map((chapter, i) => (
+            <Reveal
+              key={chapter.title}
+              className="grid items-center gap-10 lg:grid-cols-2 lg:gap-20"
+            >
+              <div className={i % 2 === 1 ? "lg:order-last" : ""}>
+                <SectionHeader eyebrow={chapter.eyebrow} title={chapter.title} intro={chapter.body} />
+              </div>
+              <Photo
+                alt={chapter.alt}
+                aspect="4/3"
+                caption={chapter.caption}
+                sizes="(min-width: 1024px) 560px, 100vw"
+              />
+            </Reveal>
+          ))}
+        </div>
       </Section>
 
       <Section tone="mountain">
-        <h2 className="sr-only">Our values</h2>
-        <ul className="grid gap-12 md:grid-cols-3 md:gap-8">
+        <SectionHeader tone="mountain" eyebrow="What we stand for" title="Our values" />
+        <ul className="mt-10 grid gap-12 md:grid-cols-3 md:gap-8">
           {values.map((value) => (
-            <li key={value.title}>
-              <span aria-hidden className="block h-px w-10 bg-allspice" />
-              <h3 className={`mt-6 ${h3}`}>{value.title}</h3>
+            <li key={value.title} className="border-t border-allspice/40 pt-6">
+              <h3 className={h3}>{value.title}</h3>
               <p className="mt-3 max-w-xs text-mountain-muted">{value.body}</p>
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section className="flex flex-col items-center text-center">
-        <h2 className={h2}>Taste it for yourself.</h2>
-        <div className="mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <LinkButton href={orderHref}>Order online</LinkButton>
-          <LinkButton href="/menu" variant="secondary">
+      <Section tone="paper" className="flex flex-col items-center text-center">
+        <SectionHeader tone="paper" align="center" eyebrow="Order online" title="Taste it for yourself." />
+        <ButtonGroup className="mt-10 w-full sm:w-auto sm:justify-center">
+          <LinkButton href={orderHref} size="lg" arrow>
+            Order online
+          </LinkButton>
+          <LinkButton href="/menu" variant="secondary" size="lg">
             See the menu
           </LinkButton>
-        </div>
-        <ServiceNote className="mt-5 text-[15px] text-muted" />
+        </ButtonGroup>
+        <ServiceNote className="mt-8 text-muted" />
       </Section>
     </>
   );

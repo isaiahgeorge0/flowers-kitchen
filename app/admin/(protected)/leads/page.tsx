@@ -74,7 +74,7 @@ async function LeadsContent({ searchParams }: Pick<PageProps<"/admin/leads">, "s
                 <Link
                   href={leadsHref(f.value, search)}
                   aria-current={active ? "page" : undefined}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-sm border px-4 text-[15px] font-semibold transition-colors duration-300 ease-out ${
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-pill border px-4 text-[15px] font-semibold transition-colors duration-300 ease-out ${
                     active
                       ? "border-pimento bg-pimento text-cream"
                       : "border-hairline bg-paper text-pimento hover:border-pimento"
@@ -102,7 +102,7 @@ async function LeadsContent({ searchParams }: Pick<PageProps<"/admin/leads">, "s
             defaultValue={search}
             maxLength={80}
             autoComplete="off"
-            className="mt-2 block min-h-12 w-full rounded-sm border border-hairline bg-paper px-4 py-2.5 text-[17px] text-pimento"
+            className="mt-2 block min-h-12 w-full rounded-input border border-hairline bg-paper px-4 py-2.5 text-[17px] text-pimento"
           />
         </div>
         <div className="flex gap-3">

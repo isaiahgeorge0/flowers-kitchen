@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, CircleAlert } from "lucide-react";
 import { useEffect, useReducer, useRef, useState, useTransition, type FormEvent } from "react";
 import { submitEnquiry, type EnquiryResult } from "@/app/(site)/catering/actions";
 import { Button } from "@/components/Button";
@@ -27,7 +28,7 @@ import {
 } from "@/lib/catering";
 import { BOXES } from "@/lib/menu";
 import { instagram } from "@/lib/site";
-import { h2, textLink } from "@/lib/typography";
+import { caps, h2, textLink } from "@/lib/typography";
 import { STEP_COMPONENTS, STEP_HEADING_ID } from "./Steps";
 import { SummaryPanel } from "./SummaryPanel";
 import { VenuePreview } from "./VenuePreview";
@@ -312,13 +313,13 @@ export function CateringBuilder() {
           <h2
             id={STEP_HEADING_ID}
             tabIndex={-1}
-            className={`mt-5 scroll-mt-28 outline-none ${h2}`}
+            className={`mt-3 scroll-mt-28 outline-none ${h2}`}
           >
             {STEPS[step - 1]}
           </h2>
-          <div aria-hidden className="mt-6 h-0.5 bg-hairline">
+          <div aria-hidden className="mt-6 h-1 overflow-hidden rounded-pill bg-hairline/70">
             <div
-              className="h-full bg-sorrel transition-[width] duration-400 ease-out"
+              className="h-full rounded-pill bg-sorrel transition-[width] duration-400 ease-out"
               style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
             />
           </div>
@@ -337,9 +338,12 @@ export function CateringBuilder() {
                 <p
                   ref={sendErrorRef}
                   tabIndex={-1}
-                  className="mt-8 rounded-sm border border-sorrel bg-paper p-4 outline-none"
+                  className="mt-8 flex items-start gap-3 rounded-card border border-sorrel bg-sorrel/[0.05] p-4 text-sorrel outline-none"
                 >
-                  <MessageWithInstagram message={sendError} />
+                  <CircleAlert aria-hidden strokeWidth={1.5} className="mt-0.5 size-5 shrink-0" />
+                  <span>
+                    <MessageWithInstagram message={sendError} />
+                  </span>
                 </p>
               )}
 
@@ -350,24 +354,25 @@ export function CateringBuilder() {
             </>
           )}
 
-          <div className="mt-10 hidden items-center justify-between gap-4 lg:flex">
+          <div className="mt-10 hidden items-center justify-between gap-3 border-t border-hairline pt-8 lg:flex">
             {step > 1 ? (
-              <Button variant="secondary" disabled={sending} onClick={() => goTo(step - 1)}>
+              <Button variant="ghost" size="lg" disabled={sending} onClick={() => goTo(step - 1)} className="gap-2">
+                <ArrowLeft aria-hidden strokeWidth={1.5} className="size-[18px]" />
                 Back
               </Button>
             ) : (
               <span />
             )}
-            <Button type="submit" disabled={sending}>
+            <Button type="submit" size="lg" disabled={sending} arrow={step < TOTAL_STEPS}>
               {submitLabel}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="sticky bottom-0 z-30 -mx-6 mt-10 border-t border-hairline bg-cream px-6 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:-mx-8 md:px-8 lg:hidden">
+      <div className="sticky bottom-0 z-30 -mx-6 mt-10 border-t border-hairline bg-paper-glass px-6 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md md:-mx-8 md:px-8 lg:hidden">
         <div aria-hidden className="flex items-baseline justify-between gap-4">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.2em] text-muted">
+          <p className={`${caps} text-muted`}>
             Step {step} of {TOTAL_STEPS}
           </p>
           <p className="font-display text-lg font-semibold text-sorrel">
@@ -378,14 +383,15 @@ export function CateringBuilder() {
           {step > 1 && (
             <Button
               variant="secondary"
-              size="sm"
               disabled={sending}
               onClick={() => goTo(step - 1)}
+              aria-label="Back"
+              className="w-11 shrink-0 px-0!"
             >
-              Back
+              <ArrowLeft aria-hidden strokeWidth={1.5} className="size-[18px]" />
             </Button>
           )}
-          <Button type="submit" size="sm" disabled={sending} className="flex-1">
+          <Button type="submit" disabled={sending} className="flex-1">
             {submitLabel}
           </Button>
         </div>
@@ -445,7 +451,7 @@ function Success({ event }: { event: CateringEvent }) {
 
       <section
         aria-labelledby="catering-sent-heading"
-        className="mt-10 rounded-sm border border-hairline bg-paper p-6"
+        className="mt-10 rounded-card border border-hairline bg-paper p-5 md:p-6"
       >
         <h3
           id="catering-sent-heading"

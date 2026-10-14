@@ -27,7 +27,7 @@ export function LeadStatusPicker({ id, status }: { id: string; status: LeadStatu
             {LEAD_STATUSES.map((value) => (
               <label
                 key={value}
-                className="inline-flex min-h-11 cursor-pointer items-center rounded-sm border border-hairline bg-cream px-4 text-[15px] font-semibold transition-colors duration-300 ease-out hover:border-pimento has-checked:border-pimento has-checked:bg-pimento has-checked:text-cream has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus-ring)] has-disabled:cursor-wait"
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-hairline bg-cream px-4 text-[15px] font-semibold transition-colors duration-300 ease-out hover:border-pimento has-checked:border-pimento has-checked:bg-pimento has-checked:text-cream has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus-ring)] has-disabled:cursor-wait"
               >
                 <input
                   type="radio"

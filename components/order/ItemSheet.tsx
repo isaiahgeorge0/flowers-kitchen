@@ -2,12 +2,13 @@
 
 import { useId, useState } from "react";
 import { Button } from "@/components/Button";
-import { ChoiceCard } from "@/components/catering/fields";
+import { ChoiceCard, ErrorText } from "@/components/catering/fields";
 import { Eyebrow } from "@/components/Eyebrow";
 import { cart } from "@/lib/ordering/cart-store";
 import { MAX_LINE_QUANTITY } from "@/lib/ordering/limits";
 import { formatPence } from "@/lib/ordering/money";
 import type { MenuBox } from "@/lib/ordering/types";
+import { h2 } from "@/lib/typography";
 import { QuantityStepper } from "./QuantityStepper";
 import { Sheet, SheetClose } from "./Sheet";
 
@@ -85,10 +86,10 @@ function ItemSheetBody({
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4 border-b border-hairline px-6 pb-4 pt-5">
+      <div className="flex items-start justify-between gap-4 border-b border-hairline px-6 pt-6 pb-5">
         <div>
           <Eyebrow>Add to basket</Eyebrow>
-          <h2 id={titleId} className="mt-3 font-display text-3xl font-semibold leading-tight tracking-[-0.015em]">
+          <h2 id={titleId} className={`mt-3 ${h2}`}>
             {box.name}
           </h2>
         </div>
@@ -97,7 +98,7 @@ function ItemSheetBody({
 
       <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
         {box.description && <p className="text-[17px]">{box.description}</p>}
-        <div className="mt-4 border-l-2 border-hairline pl-4 text-[15px]">
+        <div className="mt-4 rounded-input bg-cream px-4 py-3 text-[15px]">
           <p className="font-semibold">Allergens</p>
           <p className="text-muted">{box.allergens || "To be confirmed. Please ask us before you order."}</p>
         </div>
@@ -115,12 +116,16 @@ function ItemSheetBody({
             >
               <legend className="font-display text-xl font-semibold">
                 Choose your {group.name.toLowerCase()}
-                {group.required && <span className="ml-2 font-sans text-[13px] font-semibold uppercase tracking-[0.08em] text-sorrel">Required</span>}
+                {group.required && (
+                  <span className="ml-3 inline-flex h-6 items-center rounded-pill bg-sorrel/[0.08] px-2.5 align-middle font-sans text-[12px] font-semibold uppercase tracking-[0.12em] text-sorrel">
+                    Required
+                  </span>
+                )}
               </legend>
               {isMissing && (
-                <p id={`group-${group.id}-error`} className="mt-2 text-[15px] font-semibold text-sorrel">
+                <ErrorText id={`group-${group.id}-error`} className="mt-2">
                   Please choose your {group.name.toLowerCase()}.
-                </p>
+                </ErrorText>
               )}
               <div className="mt-3 grid gap-2">
                 {group.options.map((option) => {
@@ -159,12 +164,12 @@ function ItemSheetBody({
 
       <div className="border-t border-hairline px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
         {canOrder ? (
-          <Button className="w-full" onClick={add}>
+          <Button size="lg" className="w-full" onClick={add}>
             Add {quantity} to basket · {formatPence(unitPence * quantity)}
           </Button>
         ) : (
           <>
-            <Button className="w-full" disabled>
+            <Button size="lg" className="w-full" disabled>
               Ordering is closed
             </Button>
             <p className="mt-3 text-center text-[15px] text-muted">You can still look through the menu.</p>

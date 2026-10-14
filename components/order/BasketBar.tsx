@@ -1,10 +1,11 @@
 "use client";
 
+import { ShoppingBag } from "lucide-react";
 import { buttonClasses } from "@/components/Button";
 import { cart, cartTotals, useCart } from "@/lib/ordering/cart-store";
 import { formatPence } from "@/lib/ordering/money";
 
-/** Sticky "View basket" bar on the order page once something is in the basket. */
+/** Floating "View basket" bar on the order page once something is in the basket. */
 export function BasketBar() {
   const lines = useCart();
   const { count, totalPence } = cartTotals(lines);
@@ -13,10 +14,13 @@ export function BasketBar() {
   return (
     <>
       <div aria-hidden className="h-24" />
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-cream/95 px-6 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 motion-safe:animate-fade-rise">
-        <div className="mx-auto max-w-content md:px-2">
-          <button type="button" onClick={cart.openDrawer} className={buttonClasses("primary", "md", "w-full justify-between gap-4")}>
-            <span>View basket</span>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] motion-safe:animate-fade-rise">
+        <div className="pointer-events-auto mx-auto max-w-md rounded-pill border border-hairline bg-paper-glass p-1.5 shadow-lift backdrop-blur-md">
+          <button type="button" onClick={cart.openDrawer} className={buttonClasses("primary", "lg", "w-full justify-between gap-4 px-6")}>
+            <span className="flex items-center gap-2.5">
+              <ShoppingBag aria-hidden strokeWidth={1.5} className="size-5" />
+              View basket
+            </span>
             <span className="tabular-nums">
               {count} {count === 1 ? "box" : "boxes"} · {formatPence(totalPence)}
             </span>

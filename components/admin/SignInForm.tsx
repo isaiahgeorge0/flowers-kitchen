@@ -42,7 +42,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
       </div>
       <div aria-live="polite">
         {!state.ok && (
-          <p role="alert" className="rounded-sm border border-sorrel bg-cream px-4 py-3 text-[15px] text-sorrel">
+          <p role="alert" className="rounded-card border border-sorrel bg-cream px-4 py-3 text-[15px] text-sorrel">
             {state.message}
           </p>
         )}

@@ -28,18 +28,18 @@ export function AcceptingOrdersSwitch({ enabled, large = false }: { enabled: boo
         aria-checked={optimistic}
         aria-busy={pending}
         onClick={toggle}
-        className={`flex w-full items-center gap-4 rounded-sm border text-left transition-colors duration-300 ease-out ${
+        className={`flex w-full items-center gap-4 rounded-card border text-left transition-colors duration-300 ease-out ${
           optimistic ? "border-mountain bg-mountain text-cream [--focus-ring:var(--color-mountain-focus)]" : "border-sorrel bg-paper text-pimento"
         } ${large ? "min-h-20 px-6 py-4" : "min-h-14 px-4 py-2"}`}
       >
         <span
           aria-hidden
-          className={`relative inline-flex shrink-0 items-center rounded-full border-2 transition-colors duration-300 ease-out ${
+          className={`relative inline-flex shrink-0 items-center rounded-pill border-2 transition-colors duration-300 ease-out ${
             optimistic ? "border-cream bg-cream/20" : "border-sorrel bg-cream"
           } ${large ? "h-9 w-16" : "h-7 w-12"}`}
         >
           <span
-            className={`absolute rounded-full transition-transform duration-300 ease-out motion-reduce:transition-none ${
+            className={`absolute rounded-pill transition-transform duration-300 ease-out motion-reduce:transition-none ${
               optimistic ? "bg-cream" : "bg-sorrel"
             } ${large ? "left-1 size-6" : "left-0.5 size-5"} ${
               optimistic ? (large ? "translate-x-7" : "translate-x-5") : "translate-x-0"

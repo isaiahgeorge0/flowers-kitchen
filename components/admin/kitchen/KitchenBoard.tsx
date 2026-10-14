@@ -134,7 +134,7 @@ export function KitchenBoard({
         </p>
       )}
       {failed && (
-        <p role="alert" className="mt-4 rounded-sm border border-sorrel bg-paper px-4 py-3 font-semibold text-sorrel">
+        <p role="alert" className="mt-4 rounded-card border border-sorrel bg-paper px-4 py-3 font-semibold text-sorrel">
           We couldn&rsquo;t load the orders. Check the connection; the board retries every minute.
         </p>
       )}
@@ -153,7 +153,7 @@ export function KitchenBoard({
               aria-selected={active}
               aria-controls={`column-${column.id}`}
               onClick={() => setSelected(column.id)}
-              className={`flex min-h-16 flex-col items-center justify-center rounded-sm border px-1 text-[13px] font-semibold uppercase tracking-[0.06em] transition-colors duration-300 ease-out ${
+              className={`flex min-h-16 flex-col items-center justify-center rounded-card border px-1 text-[13px] font-semibold uppercase tracking-[0.06em] transition-colors duration-300 ease-out ${
                 active ? "border-pimento bg-pimento text-cream" : "border-hairline bg-paper text-pimento"
               }`}
             >
@@ -223,7 +223,7 @@ function UpcomingList({
   const next = orders[0]?.scheduledFor;
 
   return (
-    <details className="group mt-6 rounded-sm border border-hairline bg-paper" data-upcoming>
+    <details className="group mt-6 rounded-card border border-hairline bg-paper" data-upcoming>
       <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <span>
           <span className="block text-[15px] font-semibold uppercase tracking-[0.12em]">
@@ -280,7 +280,7 @@ function LiveStatus({ state, updating }: { state: RealtimeState; updating: boole
   const dot = { connecting: "bg-allspice", live: "bg-mountain", reconnecting: "bg-allspice", offline: "bg-sorrel" }[state];
   return (
     <div role="status" className="flex min-h-14 items-center gap-2 px-1 text-[15px] font-semibold">
-      <span aria-hidden className={`size-3 rounded-full ${dot}`} />
+      <span aria-hidden className={`size-3 rounded-pill ${dot}`} />
       {label}
       {state === "offline" && (
         <button
@@ -367,7 +367,7 @@ function OrderCard({
     <article
       aria-labelledby={`order-${order.id}`}
       aria-busy={pending}
-      className={`rounded-sm border border-hairline bg-paper p-4 transition-opacity duration-300 ease-out ${URGENCY_CARD[urgency]} ${
+      className={`rounded-card border border-hairline bg-paper p-4 transition-opacity duration-300 ease-out ${URGENCY_CARD[urgency]} ${
         justIn ? "outline-2 outline-offset-2 outline-sorrel" : ""
       } ${pending ? "opacity-60" : ""} ${active ? "" : "bg-cream"} ${upcoming ? "bg-cream" : ""}`}
     >
@@ -380,7 +380,7 @@ function OrderCard({
         </div>
         <div className="text-right">
           {justIn && (
-            <span className="mb-1 inline-block whitespace-nowrap rounded-sm bg-sorrel px-2 py-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-cream">
+            <span className="mb-1 inline-block whitespace-nowrap rounded-pill bg-sorrel px-2 py-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-cream">
               Just in
             </span>
           )}
@@ -394,7 +394,7 @@ function OrderCard({
       </header>
 
       {order.slotOverCapacity && active && (
-        <p className="mt-3 inline-block rounded-sm border border-sorrel px-2 py-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-sorrel">
+        <p className="mt-3 inline-block rounded-pill border border-sorrel px-3 py-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-sorrel">
           Over slot capacity
         </p>
       )}
@@ -466,7 +466,7 @@ function OrderCard({
               type="button"
               disabled={pending}
               onClick={onCancel}
-              className="min-h-14 flex-1 rounded-sm border border-hairline px-3 text-[15px] font-semibold uppercase tracking-[0.08em] text-sorrel transition-colors duration-300 ease-out hover:border-sorrel"
+              className="min-h-14 flex-1 rounded-pill border border-hairline px-3 text-[15px] font-semibold uppercase tracking-[0.08em] text-sorrel transition-colors duration-300 ease-out hover:border-sorrel"
             >
               Cancel
             </button>
@@ -573,10 +573,10 @@ function CancelDialog({ order, onClose }: { order: OrderDetail | null; onClose: 
                 onChange={(event) => setReason(event.target.value)}
                 maxLength={200}
                 placeholder="For example: sold out of curry goat"
-                className="mt-2 block min-h-12 w-full rounded-sm border border-hairline bg-cream px-4 py-2.5 text-[17px]"
+                className="mt-2 block min-h-12 w-full rounded-input border border-hairline bg-cream px-4 py-2.5 text-[17px]"
               />
               {error && (
-                <p role="alert" className="mt-4 rounded-sm border border-sorrel bg-cream px-4 py-3 text-[15px] font-semibold text-sorrel">
+                <p role="alert" className="mt-4 rounded-card border border-sorrel bg-cream px-4 py-3 text-[15px] font-semibold text-sorrel">
                   {error}
                 </p>
               )}

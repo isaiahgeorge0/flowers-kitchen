@@ -17,7 +17,9 @@ import {
   TextField,
   errorId,
   fieldId,
+  hintClasses,
   inputClasses,
+  labelClasses,
 } from "./fields";
 
 export const STEP_HEADING_ID = "catering-step-heading";
@@ -67,7 +69,7 @@ export function GuestsStep({ event, errors, update }: StepProps) {
 
   return (
     <>
-      <label htmlFor={fieldId("guests")} className="block font-semibold">
+      <label htmlFor={fieldId("guests")} className={labelClasses}>
         Number of guests
       </label>
       <div className="mt-3 flex items-center gap-5">
@@ -109,7 +111,7 @@ export function GuestsStep({ event, errors, update }: StepProps) {
             type="button"
             aria-pressed={event.guests === n}
             onClick={() => update({ guests: n })}
-            className="min-h-11 min-w-16 rounded-sm border border-hairline bg-paper px-4 font-semibold tabular-nums transition-colors duration-300 ease-out hover:border-muted aria-pressed:border-sorrel aria-pressed:bg-sorrel aria-pressed:text-cream"
+            className="min-h-11 min-w-18 rounded-pill border border-hairline bg-paper px-5 font-semibold tabular-nums transition-colors duration-300 ease-out hover:border-muted/60 aria-pressed:border-sorrel aria-pressed:bg-sorrel/[0.08] aria-pressed:text-sorrel aria-pressed:shadow-[inset_0_0_0_1px_var(--color-sorrel)]"
           >
             {n}
           </button>
@@ -158,13 +160,13 @@ export function FoodStep({ event, errors, toggle }: StepProps) {
     <>
       <SidesSentence
         prefix="Every box or portion comes with"
-        className="text-lg text-muted"
+        className="max-w-measure text-[17px] text-pretty text-muted"
       />
 
-      <h3 id="catering-mains-heading" className={`mt-8 ${subheading}`}>
+      <h3 id="catering-mains-heading" className={`mt-10 ${subheading}`}>
         Mains
       </h3>
-      <p id="catering-mains-hint" className="mt-1 text-[15px] text-muted">
+      <p id="catering-mains-hint" className={hintClasses}>
         Pick up to {maxMains}.
       </p>
       <div
@@ -202,7 +204,7 @@ export function FoodStep({ event, errors, toggle }: StepProps) {
           : ""}
       </p>
 
-      <h3 id="catering-extras-heading" className={`mt-8 ${subheading}`}>
+      <h3 id="catering-extras-heading" className={`mt-10 ${subheading}`}>
         Extras
       </h3>
       <div
@@ -298,10 +300,10 @@ export function DetailsStep({ event, errors, update }: StepProps) {
         error={errors.phone}
       />
       <div>
-        <label htmlFor={fieldId("notes")} className="block font-semibold">
+        <label htmlFor={fieldId("notes")} className={labelClasses}>
           Notes <span className="font-normal text-muted">(optional)</span>
         </label>
-        <p id={`${fieldId("notes")}-hint`} className="mt-1 text-[15px] text-muted">
+        <p id={`${fieldId("notes")}-hint`} className={hintClasses}>
           Dietary needs, venue access, anything else we should know.
         </p>
         <textarea

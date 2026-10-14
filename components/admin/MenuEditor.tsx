@@ -91,7 +91,7 @@ function SoldOutToggle({ itemId, soldOut, name }: { itemId: string; soldOut: boo
         aria-busy={pending}
         aria-label={`${name} sold out`}
         onClick={toggle}
-        className={`inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-sm border px-5 text-[15px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 ease-out sm:w-auto ${
+        className={`inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-pill border px-5 text-[15px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 ease-out sm:w-auto ${
           value ? "border-sorrel bg-sorrel text-cream [--focus-ring:var(--color-cream)]" : "border-pimento text-pimento"
         }`}
       >
@@ -118,7 +118,7 @@ function OptionToggle({ option }: { option: { id: string; name: string; availabl
         aria-checked={value}
         aria-busy={pending}
         onClick={toggle}
-        className={`inline-flex min-h-12 items-center gap-2 rounded-sm border px-4 text-[15px] font-semibold transition-colors duration-300 ease-out ${
+        className={`inline-flex min-h-12 items-center gap-2 rounded-pill border px-4 text-[15px] font-semibold transition-colors duration-300 ease-out ${
           value ? "border-mountain bg-mountain text-cream [--focus-ring:var(--color-mountain-focus)]" : "border-hairline bg-cream text-muted line-through"
         }`}
       >

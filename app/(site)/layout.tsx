@@ -2,12 +2,15 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { CartDrawer } from "@/components/order/CartDrawer";
 import { instagram } from "@/lib/site";
+import { absoluteUrl } from "@/lib/site-url";
 
 // TODO: Add openingHoursSpecification, telephone and priceRange once confirmed with the client.
 const restaurantJsonLd = {
   "@context": "https://schema.org",
   "@type": "Restaurant",
   name: "Flowers Kitchen",
+  url: absoluteUrl("/"),
+  logo: absoluteUrl("/brand/flowers-kitchen_primary_full-colour.svg"),
   servesCuisine: "Jamaican",
   address: {
     "@type": "PostalAddress",

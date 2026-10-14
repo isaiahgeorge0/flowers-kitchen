@@ -4,7 +4,11 @@ import { NumberedSteps } from "@/components/NumberedSteps";
 import { Reveal } from "@/components/Reveal";
 import { Section, SectionHeader } from "@/components/Section";
 
-export const metadata: Metadata = { title: "Catering" };
+export const metadata: Metadata = {
+  title: "Catering",
+  description:
+    "Jamaican family recipes for your birthday, wedding, office lunch or christening. Tell us about your event and we'll come back to you with a quote.",
+};
 
 const howItWorks = [
   "Build your event",

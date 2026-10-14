@@ -9,7 +9,11 @@ import { ServiceNote } from "@/components/ServiceNote";
 import { orderHref } from "@/lib/site";
 import { display, h3 } from "@/lib/typography";
 
-export const metadata: Metadata = { title: "Our Story" };
+export const metadata: Metadata = {
+  title: "Our Story",
+  description:
+    "Brothers Asher and Tajay Flowers cook the recipes taught by their fathers and uncles, who were born in Jamaica and built a life in Ipswich.",
+};
 
 const chapters = [
   {

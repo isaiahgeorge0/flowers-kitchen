@@ -30,10 +30,7 @@ export default async function OrderPage() {
 
         <div className="mt-10">
           {boxes && boxes.length > 0 ? (
-            <>
-              <h2 className="sr-only">Boxes</h2>
-              <OrderMenu boxes={boxes} settings={settings} />
-            </>
+            <OrderMenu boxes={boxes} settings={settings} />
           ) : (
             <div className="rounded-card border border-hairline bg-paper p-6 md:p-8">
               <p className={h3}>Online ordering is coming soon</p>

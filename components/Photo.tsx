@@ -31,23 +31,22 @@ export function Photo({
     );
   }
 
-  // Placeholder until the shoot: a warm dark panel with a faint hibiscus and the caption.
+  // Placeholder until the shoot: a light panel with a hibiscus outline and the caption.
   return (
     <div
       aria-hidden
-      className={`${frame} flex flex-col items-center justify-center bg-pimento`}
+      className={`${frame} flex flex-col items-center justify-center border border-hairline bg-paper`}
       style={{ aspectRatio: aspect }}
     >
-      <span className="hibiscus-watermark pointer-events-none absolute top-1/2 left-1/2 aspect-square w-[58%] max-w-80 -translate-1/2 text-cream opacity-[0.06]" />
-      <span className="absolute inset-2.5 rounded-input border border-dashed border-mountain-muted/25" />
-      <span className="relative flex items-center gap-3 text-mountain-muted">
-        <span className="h-px w-6 bg-allspice/70" />
+      <span className="absolute inset-2.5 rounded-input border border-dashed border-hairline" />
+      <span className="hibiscus-line relative aspect-square w-[22%] max-w-28 min-w-14" />
+      <span className="relative mt-4 flex items-center gap-3 text-muted">
+        <span className="h-px w-6 bg-allspice" />
         <span className={`${caps} tracking-[0.28em]`}>{caption}</span>
-        <span className="h-px w-6 bg-allspice/70" />
+        <span className="h-px w-6 bg-allspice" />
       </span>
-      <span className={`relative mt-2.5 ${caps} text-[11px] tracking-[0.28em] text-mountain-muted`}>
-        Photo to follow
-      </span>
+      <span className={`relative mt-2.5 ${caps} text-[11px] tracking-[0.28em] text-muted`}>Photo to follow</span>
     </div>
   );
 }
+

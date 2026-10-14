@@ -1,6 +1,14 @@
 import "server-only";
 import { z } from "zod";
 
+// A sender address. "Name <address>" is accepted too, but the name is dropped: lib/email-senders.ts
+// sets the display names.
+const senderAddress = z
+  .string()
+  .trim()
+  .transform((value) => value.match(/<([^<>]+)>\s*$/)?.[1]?.trim() ?? value)
+  .pipe(z.email());
+
 const schema = z
   .object({
     SUPABASE_URL: z.url(),
@@ -10,9 +18,13 @@ const schema = z
     // Safe in the browser: every table it can reach is protected by RLS.
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith("sb_publishable_"),
     RESEND_API_KEY: z.string().min(1),
+    // Catering enquiries only: the shop's catering inbox, and the address enquiry emails come from.
     ENQUIRY_TO_EMAIL: z.email(),
-    // Either "hello@example.com" or "Flowers Kitchen <hello@example.com>".
-    ENQUIRY_FROM_EMAIL: z.string().min(3),
+    ENQUIRY_FROM_EMAIL: senderAddress,
+    // Online orders only: the shop's orders inbox (new-order alerts, customer replies), and the
+    // address every order email comes from.
+    ORDERS_TO_EMAIL: z.email(),
+    ORDERS_FROM_EMAIL: senderAddress,
   })
   .refine((value) => value.SUPABASE_URL === value.NEXT_PUBLIC_SUPABASE_URL, {
     path: ["NEXT_PUBLIC_SUPABASE_URL"],

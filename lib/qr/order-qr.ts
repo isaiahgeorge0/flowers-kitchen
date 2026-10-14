@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import QRCode from "qrcode";
 import sharp from "sharp";
+import { absoluteUrl, displayUrl } from "@/lib/site-url";
 import { CAP_HEIGHT, textToPath } from "./lettering";
 
 // The counter QR code: links to /order?src=qr so QR orders are counted separately.
@@ -11,15 +12,15 @@ import { CAP_HEIGHT, textToPath } from "./lettering";
 
 const COLOURS = { cream: "#F3EADB", pimento: "#2B1B16", sorrel: "#8F1D2C", allspice: "#B9853F" };
 
-/** Printed under the code. A placeholder until the domain is confirmed (CONTENT_TODO.md). */
-export const QR_DISPLAY_URL = "flowerskitchen.XXX/order";
-
 const MARK_FILE = path.join(process.cwd(), "public", "brand", "flowers-kitchen_mark_full-colour.svg");
 
 export function qrOrderUrl() {
-  const site = process.env.NEXT_PUBLIC_SITE_URL;
-  const origin = site ? new URL(site).origin : "http://localhost:3000";
-  return `${origin}/order?src=qr`;
+  return absoluteUrl("/order?src=qr");
+}
+
+/** Printed under the code, e.g. "flowerskitchen.co.uk/order". */
+export function qrDisplayUrl() {
+  return displayUrl("/order");
 }
 
 let markCache: { viewBox: string; inner: string } | null = null;
@@ -95,7 +96,7 @@ export async function orderQrSvg() {
   const ruleGap = 28;
   const ruleLength = 72;
 
-  const address = textToPath(QR_DISPLAY_URL, { size: 44 });
+  const address = textToPath(qrDisplayUrl(), { size: 44 });
   const addressX = (width - address.width) / 2;
   const addressBaseline = codeTop + codeWidth + 100;
 

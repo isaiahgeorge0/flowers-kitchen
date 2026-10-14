@@ -8,7 +8,11 @@ import { BOXES } from "@/lib/menu";
 import { boxPriceLabels } from "@/lib/ordering/menu";
 import { orderSteps } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Menu" };
+export const metadata: Metadata = {
+  title: "Menu",
+  description:
+    "Jerk chicken, curry goat, fried fish and more. Every box comes with rice & peas or white rice, mac & cheese, festival and coleslaw. Halal, collection only.",
+};
 
 export default async function MenuPage() {
   const prices = await boxPriceLabels();

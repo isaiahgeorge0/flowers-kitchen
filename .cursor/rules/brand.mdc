@@ -47,6 +47,7 @@ Focus ring: 2px solid mountain on light backgrounds, #D4A55E on mountain.
 - Buttons: one `Button` component — primary (sorrel), secondary (pimento outline), ghost (underline on hover), on-dark (cream outline); md 44px, lg 52px; optional trailing arrow. Never full-width on desktop except in a sheet or card footer.
 - Signature detail: short horizontal rules either side of tracked capitals (like "— KITCHEN —" in the logo).
 - Motion: fades and 8–16px rises, 300–400ms ease-out. Nothing bounces. Respect prefers-reduced-motion.
+- No third-party embeds or requests on public pages (no cookies but the site's own): maps use the drawn `MapCard`, fonts come from next/font, analytics is cookieless Vercel Analytics. Every absolute URL comes from `NEXT_PUBLIC_SITE_URL` via `lib/site-url.ts`.
 
 ## Logo files (in /public/brand/)
 - Header: flowers-kitchen_horizontal_full-colour.svg (min 160px wide; below that use the mark).

@@ -211,7 +211,18 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
               Please check the allergens listed on each box. If you have an allergy, tell us in the note above. All our food is halal.
             </p>
           </div>
-          <Button type="submit" size="lg" className="mt-6 w-full" disabled={!canPay} aria-describedby={needsSlot ? "checkout-needs-slot" : undefined}>
+          <p className="mt-6 text-[15px] text-muted">
+            By paying you agree to our{" "}
+            <Link href="/terms" target="_blank" className="font-semibold text-pimento underline decoration-sorrel underline-offset-4">
+              terms<span className="sr-only"> (opens in a new tab)</span>
+            </Link>
+            . See how we use your details in our{" "}
+            <Link href="/privacy" target="_blank" className="font-semibold text-pimento underline decoration-sorrel underline-offset-4">
+              privacy policy<span className="sr-only"> (opens in a new tab)</span>
+            </Link>
+            .
+          </p>
+          <Button type="submit" size="lg" className="mt-4 w-full" disabled={!canPay} aria-describedby={needsSlot ? "checkout-needs-slot" : undefined}>
             {pending ? "Taking you to payment…" : `Pay ${formatPence(totalPence)}`}
           </Button>
           {needsSlot && ordering?.canOrder && (

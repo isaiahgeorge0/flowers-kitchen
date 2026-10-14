@@ -1,5 +1,7 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
+import { siteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -23,11 +25,13 @@ export const metadata: Metadata = {
   },
   description:
     "Jamaican family recipes, cooked by the next generation. Halal boxes to collect from St Helen's Street, Ipswich. Order online or book us for your event.",
-  icons: {
-    icon: {
-      url: "/brand/flowers-kitchen_mark_full-colour.svg",
-      type: "image/svg+xml",
-    },
+  metadataBase: new URL(siteOrigin()),
+  alternates: { canonical: "./" },
+  openGraph: {
+    type: "website",
+    siteName: "Flowers Kitchen",
+    locale: "en_GB",
+    url: "./",
   },
 };
 
@@ -49,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );

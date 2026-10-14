@@ -25,6 +25,17 @@ export const phone = {
 /** Shown in customer emails once confirmed, e.g. "01473 000000". See CONTENT_TODO.md. */
 export const shopPhone: string | null = null;
 
+// TODO: confirm with the client before launch. Used by /privacy and /terms. See CONTENT_TODO.md.
+export const legal = {
+  /** The business behind Flowers Kitchen, e.g. a limited company or partnership name. */
+  entityName: "[Legal entity name — XXXX]",
+  /** Full postal address including the number and postcode. */
+  postalAddress: "XX St Helen's Street, Ipswich XXXX XXX",
+  /** Where privacy and order questions go. */
+  email: "[shop email — XXXX]",
+  lastUpdated: "XXXX",
+};
+
 export const serviceNotes = ["Halal", "Collection only", "Order online"];
 
 export const orderSteps = [

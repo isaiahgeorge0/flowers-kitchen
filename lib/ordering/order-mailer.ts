@@ -1,5 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
+import { orderMail } from "@/lib/email-senders";
 import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase-server";
 import { buildCancellationEmail, buildCustomerOrderEmail, buildReadyEmail, buildShopOrderEmail } from "./order-email";
@@ -28,7 +29,7 @@ async function sendOnce(
 ) {
   try {
     const { error } = await resend.emails.send(
-      { from: env.ENQUIRY_FROM_EMAIL, ...message },
+      { from: orderMail.from, ...message },
       { idempotencyKey: `${key}-${order.id}` },
     );
     if (error) throw error;
@@ -63,14 +64,14 @@ export async function sendOrderEmails(orderId: string) {
     const email = buildCustomerOrderEmail(order);
     await sendOnce(order, "confirmation_email_sent_at", "order-confirmation", {
       to: order.customerEmail,
-      replyTo: env.ENQUIRY_TO_EMAIL,
+      replyTo: orderMail.replyTo,
       ...email,
     });
   }
   if (!flags.shop_email_sent_at) {
     const email = buildShopOrderEmail(order);
     await sendOnce(order, "shop_email_sent_at", "order-shop", {
-      to: env.ENQUIRY_TO_EMAIL,
+      to: orderMail.shopInbox,
       replyTo: order.customerEmail,
       ...email,
     });
@@ -86,7 +87,7 @@ export async function sendCancellationEmail(orderId: string) {
   if (flags.cancellation_email_sent_at) return true;
   return sendOnce(order, "cancellation_email_sent_at", "order-cancelled", {
     to: order.customerEmail,
-    replyTo: env.ENQUIRY_TO_EMAIL,
+    replyTo: orderMail.replyTo,
     ...buildCancellationEmail(order),
   });
 }
@@ -100,7 +101,7 @@ export async function sendReadyEmail(orderId: string) {
   if (flags.ready_email_sent_at) return true;
   return sendOnce(order, "ready_email_sent_at", "order-ready", {
     to: order.customerEmail,
-    replyTo: env.ENQUIRY_TO_EMAIL,
+    replyTo: orderMail.replyTo,
     ...buildReadyEmail(order),
   });
 }

@@ -3,14 +3,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { InstagramLink } from "@/components/InstagramLink";
-import { MapEmbed } from "@/components/MapEmbed";
+import { MapCard } from "@/components/MapCard";
 import { OpeningHoursTable } from "@/components/OpeningHoursTable";
 import { Section, SectionHeader } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
 import { addressHeading, orderHref, orderSteps, phone } from "@/lib/site";
 import { h3, textLink } from "@/lib/typography";
 
-export const metadata: Metadata = { title: "Find Us" };
+export const metadata: Metadata = {
+  title: "Find Us",
+  description:
+    "Find Flowers Kitchen on St Helen's Street, Ipswich. Opening hours, how to order online and collect, and answers to common questions.",
+};
 
 const faqs: { question: string; answer: ReactNode }[] = [
   { question: "Is the food halal?", answer: "Yes, all our food is halal." },
@@ -95,7 +99,7 @@ export default function FindUsPage() {
           <ServiceNote className="mt-10 text-muted" />
         </div>
 
-        <MapEmbed className="aspect-4/5 sm:aspect-4/3 lg:aspect-auto lg:h-full lg:min-h-[36rem]" />
+        <MapCard className="aspect-4/5 sm:aspect-4/3 lg:aspect-auto lg:h-full lg:min-h-[36rem]" />
       </Section>
 
       <Section tone="paper">

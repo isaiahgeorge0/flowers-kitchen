@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PrintButton } from "@/components/admin/PrintButton";
 import { requireActiveAdmin } from "@/lib/admin/guards";
-import { orderQrCodeSvg, QR_DISPLAY_URL } from "@/lib/qr/order-qr";
+import { orderQrCodeSvg, qrDisplayUrl } from "@/lib/qr/order-qr";
 
 export const metadata: Metadata = { title: "QR counter card" };
 
@@ -65,7 +65,7 @@ async function Card() {
           Skip the queue — order and pay on your phone
         </p>
         <p className="mt-auto text-[9.5pt] font-semibold uppercase tracking-[0.18em]">Collection only · Halal</p>
-        <p className="mt-[1.5mm] text-[9pt] text-muted">{QR_DISPLAY_URL}</p>
+        <p className="mt-[1.5mm] text-[9pt] text-muted">{qrDisplayUrl()}</p>
       </article>
     </>
   );

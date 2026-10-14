@@ -4,7 +4,7 @@ import { BoxCard } from "@/components/BoxCard";
 import { ButtonGroup, LinkButton } from "@/components/Button";
 import { Eyebrow } from "@/components/Eyebrow";
 import { InstagramLink } from "@/components/InstagramLink";
-import { MapEmbed } from "@/components/MapEmbed";
+import { MapCard } from "@/components/MapCard";
 import { OpeningHoursTable } from "@/components/OpeningHoursTable";
 import { Photo } from "@/components/Photo";
 import { Section, SectionHeader } from "@/components/Section";
@@ -178,7 +178,7 @@ function FindUs() {
         <ServiceNote className="mt-6 text-muted" />
       </div>
 
-      <MapEmbed className="aspect-4/3 lg:aspect-auto lg:h-full lg:min-h-[28rem]" />
+      <MapCard className="aspect-square sm:aspect-4/3 lg:aspect-auto lg:h-full lg:min-h-[28rem]" />
     </Section>
   );
 }

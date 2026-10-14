@@ -9,11 +9,10 @@ import {
   type CateringEvent,
 } from "@/lib/catering";
 import { enquirySchema, type Enquiry } from "@/lib/catering-schema";
-import { buildEnquiryEmail } from "@/lib/enquiry-email";
+import { cateringMail } from "@/lib/email-senders";
+import { buildEnquiryConfirmationEmail, buildEnquiryEmail } from "@/lib/enquiry-email";
 import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase-server";
-
-// TODO: Customer confirmation email — enable once the client's domain is verified in Resend.
 
 export type EnquiryInput = CateringEvent & { website?: string };
 export type EnquiryResult = { ok: true } | { ok: false; message: string };
@@ -99,19 +98,23 @@ export async function submitEnquiry(input: EnquiryInput): Promise<EnquiryResult>
       receivedAt: new Date(saved.created_at),
     });
     const { error } = await resend.emails.send(
-      {
-        from: env.ENQUIRY_FROM_EMAIL,
-        to: env.ENQUIRY_TO_EMAIL,
-        replyTo: enquiry.email,
-        subject: email.subject,
-        html: email.html,
-        text: email.text,
-      },
+      { from: cateringMail.from, to: cateringMail.shopInbox, replyTo: enquiry.email, ...email },
       { idempotencyKey: `catering-enquiry-${saved.id}` },
     );
     if (error) throw error;
   } catch (error) {
     console.error(`[catering] Enquiry ${saved.id} saved but the notification email failed:`, describe(error));
+  }
+
+  try {
+    const email = buildEnquiryConfirmationEmail(enquiry);
+    const { error } = await resend.emails.send(
+      { from: cateringMail.from, to: enquiry.email, replyTo: cateringMail.replyTo, ...email },
+      { idempotencyKey: `catering-confirmation-${saved.id}` },
+    );
+    if (error) throw error;
+  } catch (error) {
+    console.error(`[catering] Enquiry ${saved.id} saved but the confirmation email failed:`, describe(error));
   }
 
   return { ok: true };

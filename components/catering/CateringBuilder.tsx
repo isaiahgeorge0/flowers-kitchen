@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, CircleAlert } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useReducer, useRef, useState, useTransition, type FormEvent } from "react";
 import { submitEnquiry, type EnquiryResult } from "@/app/(site)/catering/actions";
 import { Button } from "@/components/Button";
@@ -347,9 +348,12 @@ export function CateringBuilder() {
                 </p>
               )}
 
-              {/* TODO: Link to a privacy policy before launch. */}
               <p className="mt-8 text-[13px] text-muted">
-                We&apos;ll only use your details to reply to this enquiry.
+                We&apos;ll only use your details to reply to this enquiry. See our{" "}
+                <Link href="/privacy" className="font-semibold text-pimento underline decoration-sorrel underline-offset-4">
+                  privacy policy
+                </Link>
+                .
               </p>
             </>
           )}

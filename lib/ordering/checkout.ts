@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { stripeEnv } from "@/lib/env";
+import { clientIp, hit, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
 import { getStripe } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase-server";
 import { cleanCustomer, validateCustomer, type CustomerErrors, type CustomerValues } from "./customer";
@@ -15,6 +16,8 @@ import type { CartLine, OrderSource } from "./types";
 
 // A Checkout Session stays payable for this long; Stripe's minimum is 30 minutes.
 const SESSION_MINUTES = 31;
+// Per IP and per phone number: enough for a customer fixing a mistake, not for a script.
+const CHECKOUT_LIMIT = { limit: 5, windowMinutes: 10 };
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type StartCheckoutResult =
@@ -98,6 +101,15 @@ export async function startCheckout(input: {
   const cart = cartInputSchema.safeParse(input.cart);
   if (!cart.success || !UUID_RE.test(input.nonce)) {
     return { ok: false, message: "We couldn't read your basket. Please add your boxes again." };
+  }
+
+  const limits: [bucket: string, key: string][] = [
+    ["checkout-ip", await clientIp()],
+    ["checkout-phone", customer.phone],
+  ];
+  for (const [bucket, key] of limits) {
+    const limited = await hit(bucket, key, CHECKOUT_LIMIT.limit, CHECKOUT_LIMIT.windowMinutes);
+    if (!limited.ok) return { ok: false, message: RATE_LIMITED_MESSAGE };
   }
 
   let settings;

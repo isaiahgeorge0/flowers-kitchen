@@ -32,6 +32,7 @@ import { instagram } from "@/lib/site";
 import { caps, h2, textLink } from "@/lib/typography";
 import { STEP_COMPONENTS, STEP_HEADING_ID } from "./Steps";
 import { SummaryPanel } from "./SummaryPanel";
+import { TurnstileWidget, turnstileEnabled, type TurnstileHandle } from "./TurnstileWidget";
 import { VenuePreview } from "./VenuePreview";
 
 const STORAGE_KEY = "flowers-kitchen:catering-builder";
@@ -176,6 +177,7 @@ export function CateringBuilder() {
   const formRef = useRef<HTMLFormElement>(null);
   const focusStepHeading = useRef(false);
   const sendErrorRef = useRef<HTMLParagraphElement>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const [sending, startSending] = useTransition();
   const [sendError, setSendError] = useState<string | null>(null);
 
@@ -243,6 +245,12 @@ export function CateringBuilder() {
       return;
     }
     const website = new FormData(e.currentTarget).get(HONEYPOT_NAME);
+    const turnstileToken = turnstileRef.current?.token() ?? undefined;
+    if (turnstileEnabled && !turnstileToken) {
+      setSendError(ENQUIRY_MESSAGES.challenge);
+      sendErrorRef.current?.focus();
+      return;
+    }
     setSendError(null);
     startSending(async () => {
       let result: EnquiryResult;
@@ -250,12 +258,17 @@ export function CateringBuilder() {
         result = await submitEnquiry({
           ...event,
           website: typeof website === "string" ? website : "",
+          turnstileToken,
         });
       } catch {
         result = { ok: false, message: ENQUIRY_MESSAGES.failed };
       }
-      if (result.ok) dispatch({ type: "submitted" });
-      else setSendError(result.message);
+      if (result.ok) {
+        dispatch({ type: "submitted" });
+      } else {
+        turnstileRef.current?.reset();
+        setSendError(result.message);
+      }
     });
   }
 
@@ -347,6 +360,8 @@ export function CateringBuilder() {
                   </span>
                 </p>
               )}
+
+              <TurnstileWidget ref={turnstileRef} className="mt-8" />
 
               <p className="mt-8 text-[13px] text-muted">
                 We&apos;ll only use your details to reply to this enquiry. See our{" "}

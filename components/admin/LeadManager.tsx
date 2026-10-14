@@ -2,13 +2,35 @@
 
 import { useActionState, useRef } from "react";
 import {
+  resendLeadConfirmationAction,
   updateLeadDetailsAction,
   updateLeadStatusAction,
 } from "@/app/admin/(protected)/leads/actions";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/admin/lead-status";
 import { idleActionState } from "@/lib/admin/types";
 import { ActionFeedback, SubmitButton } from "./ActionUi";
-import { adminCard, adminH2, adminInput, adminLabel } from "./AdminUi";
+import { EmailNotSentChip, adminCard, adminH2, adminInput, adminLabel } from "./AdminUi";
+
+/** "Email not sent" and a retry, when the customer's confirmation never went out. */
+export function LeadConfirmationStatus({ id, overdue }: { id: string; overdue: boolean }) {
+  const [state, action] = useActionState(resendLeadConfirmationAction, idleActionState);
+  if (!overdue && state.at === 0) return null;
+
+  return (
+    <form action={action} className="mt-4 flex flex-wrap items-center gap-3">
+      <input type="hidden" name="id" value={id} />
+      {overdue && (
+        <>
+          <EmailNotSentChip />
+          <SubmitButton variant="secondary" pendingLabel="Sending…">
+            Resend confirmation
+          </SubmitButton>
+        </>
+      )}
+      <ActionFeedback state={state} />
+    </form>
+  );
+}
 
 export function LeadStatusPicker({ id, status }: { id: string; status: LeadStatus }) {
   const [state, action, pending] = useActionState(updateLeadStatusAction, idleActionState);

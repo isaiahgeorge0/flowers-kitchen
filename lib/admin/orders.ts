@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { zonedDayStart } from "@/lib/ordering/hours";
 import { toPence } from "@/lib/ordering/money";
-import { mapOrder, ORDER_SELECT, type OrderDetail, type OrderStatus } from "@/lib/ordering/orders";
+import { ADMIN_ORDER_SELECT, mapOrder, type OrderDetail, type OrderStatus } from "@/lib/ordering/orders";
 import { dayName, zonedIsoDate } from "@/lib/ordering/schedule";
 
 const TIME_ZONE = "Europe/London";
@@ -18,13 +18,13 @@ export async function fetchKitchenOrders(supabase: SupabaseClient) {
   const [active, finished] = await Promise.all([
     supabase
       .from("orders")
-      .select(ORDER_SELECT)
+      .select(ADMIN_ORDER_SELECT)
       .in("order_status", ACTIVE_STATUSES)
       .order("created_at", { ascending: true })
       .limit(400),
     supabase
       .from("orders")
-      .select(ORDER_SELECT)
+      .select(ADMIN_ORDER_SELECT)
       .in("order_status", ["completed", "cancelled"])
       .not("payment_confirmed_at", "is", null)
       .or(`completed_at.gte.${todayStart},cancelled_at.gte.${todayStart}`)

@@ -1,11 +1,13 @@
 "use client";
 
 import { useId, useState, useSyncExternalStore, useTransition } from "react";
-import { cancelOrderAction, moveOrderAction } from "@/app/admin/(protected)/orders/actions";
+import { cancelOrderAction, moveOrderAction, resendReceiptAction } from "@/app/admin/(protected)/orders/actions";
 import { AcceptingOrdersSwitch } from "@/components/admin/AcceptingOrdersSwitch";
+import { EmailNotSentChip } from "@/components/admin/AdminUi";
 import { PauseControls } from "@/components/admin/PauseControls";
 import { buttonClasses } from "@/components/Button";
 import { Sheet, SheetClose } from "@/components/order/Sheet";
+import { emailOverdue } from "@/lib/admin/email-status";
 import { urgencyFor, type Urgency } from "@/lib/admin/kitchen-alerts";
 import { UPCOMING_WINDOW_MINUTES } from "@/lib/ordering/limits";
 import { formatPence } from "@/lib/ordering/money";
@@ -355,11 +357,26 @@ function OrderCard({
   const back = BACK[order.orderStatus];
   const boxes = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  const [resent, setResent] = useState(false);
+  const emailLate =
+    order.paymentStatus === "paid" &&
+    order.confirmationEmailSentAt !== undefined &&
+    emailOverdue(order.confirmationEmailSentAt, order.paymentConfirmedAt ?? order.createdAt, now);
+
   const move = (to: OrderStatus) => {
     setError(null);
     startTransition(async () => {
       const result = await moveOrderAction(order.id, order.orderStatus, to);
       if (!result.ok) setError(result.message);
+    });
+  };
+
+  const resendReceipt = () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await resendReceiptAction(order.id);
+      if (result.ok) setResent(true);
+      else setError(result.message);
     });
   };
 
@@ -426,6 +443,25 @@ function OrderCard({
           {order.customerPhone}
         </a>
       </p>
+
+      {emailLate && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <EmailNotSentChip />
+          <button
+            type="button"
+            disabled={pending}
+            onClick={resendReceipt}
+            className={buttonClasses("secondary", "md", "px-4")}
+          >
+            Resend receipt
+          </button>
+        </div>
+      )}
+      {resent && !emailLate && (
+        <p role="status" className="mt-3 text-[15px] font-semibold text-mountain">
+          Receipt sent.
+        </p>
+      )}
 
       {!active && <DoneLine order={order} />}
 

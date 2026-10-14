@@ -24,7 +24,8 @@ The page is a full draft and needs the client's review before launch. It's marke
 
 - **How long enquiries are kept.** "XX months after we last hear from you". There's a TODO in the file.
 - **How long orders are kept.** "X years, for our accounts". Usually set by the accountant.
-- **Check the processors list.** Vercel (hosting and cookieless visitor counts), Supabase (storage), Resend (email) and Stripe (payments). Tell us if you add any other service.
+- **Payment event records: 90 days.** Already in place: a daily job (migration 006) clears the personal details from Stripe event and refund records after 90 days. Change the policy line and the job together.
+- **Check the processors list.** Vercel (hosting and cookieless visitor counts), Supabase (storage), Resend (email), Stripe (payments) and Cloudflare Turnstile (spam check on the catering form). Tell us if you add any other service.
 - **"We don't use your details for marketing."** If the client ever wants a mailing list, this line and the lawful basis need updating first.
 
 ## 4. Terms of sale decisions (`app/(site)/terms/page.tsx`)
@@ -89,5 +90,8 @@ These rules are also written up in `lib/ordering/schedule.ts`.
   - `ORDERS_TO_EMAIL=orders@flowerskitchen.co.uk`: gets the "New order" alert and customers' replies to order emails.
   - `ENQUIRY_FROM_EMAIL=catering@flowerskitchen.co.uk`: sends catering emails (the shop notification and the customer's "Thanks — we've got your enquiry").
   - `ENQUIRY_TO_EMAIL=catering@flowerskitchen.co.uk`: gets new enquiries and customers' replies to the confirmation.
+- **Spam and abuse protection.** Both are required in production; the build fails without them.
+  - `RATE_LIMIT_SALT`: a long random string (for example `openssl rand -hex 32`). Checkout allows 5 tries per 10 minutes per IP and per phone number; the catering form allows 3 per hour per IP. Run migration 005 first.
+  - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`: create a free Turnstile widget in the Cloudflare dashboard (mode "Managed", hostname flowerskitchen.co.uk). Never use Cloudflare's test keys in production.
 - **Resend domain.** Verify flowerskitchen.co.uk in Resend before launch. Until then Resend only delivers to the account owner, so customer emails (order emails and the catering confirmation) won't reach customers. Make sure both the orders@ and catering@ inboxes exist so replies land somewhere.
 - **Stripe business details.** Business name, statement descriptor ("FLOWERS KITCHEN") and support email in the Stripe dashboard. The support email should be orders@flowerskitchen.co.uk, to match the order emails.

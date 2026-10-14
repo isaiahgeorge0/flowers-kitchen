@@ -9,6 +9,13 @@ const senderAddress = z
   .transform((value) => value.match(/<([^<>]+)>\s*$/)?.[1]?.trim() ?? value)
   .pipe(z.email());
 
+const isProduction = process.env.NODE_ENV === "production";
+
+// Required in production; may be missing or blank in development.
+function requiredInProduction(value: z.ZodString) {
+  return z.preprocess((raw) => (raw === "" ? undefined : raw), isProduction ? value : value.optional());
+}
+
 const schema = z
   .object({
     SUPABASE_URL: z.url(),
@@ -25,6 +32,12 @@ const schema = z
     // address every order email comes from.
     ORDERS_TO_EMAIL: z.email(),
     ORDERS_FROM_EMAIL: senderAddress,
+    // Mixed into every rate-limit key before hashing, so stored hashes can't be matched to IPs
+    // or phone numbers. Any long random string; changing it resets the limits.
+    RATE_LIMIT_SALT: requiredInProduction(z.string().min(16)),
+    // Cloudflare Turnstile on the catering form. Without them (development only) the check is skipped.
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: requiredInProduction(z.string().min(1)),
+    TURNSTILE_SECRET_KEY: requiredInProduction(z.string().min(1)),
   })
   .refine((value) => value.SUPABASE_URL === value.NEXT_PUBLIC_SUPABASE_URL, {
     path: ["NEXT_PUBLIC_SUPABASE_URL"],

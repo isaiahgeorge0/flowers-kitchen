@@ -25,6 +25,8 @@ export async function POST(request: Request) {
   }
 
   const result = await processStripeWebhookEvent(event);
-  // A 500 makes Stripe retry; the event ledger makes the retry safe.
-  return Response.json({ ok: result.ok, duplicate: result.duplicate }, { status: result.ok ? 200 : 500 });
+  // 500 only for real failures (Supabase, Stripe API): Stripe retries, and the event ledger makes
+  // the retry safe. Events that aren't for a site order come back ok with `ignored` set.
+  if (!result.ok) return Response.json({ ok: false, duplicate: result.duplicate }, { status: 500 });
+  return Response.json({ ok: true, duplicate: result.duplicate, ignored: result.ignored ?? null });
 }

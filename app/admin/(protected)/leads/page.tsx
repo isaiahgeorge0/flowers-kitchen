@@ -3,7 +3,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClasses } from "@/components/Button";
-import { AdminLoading, AdminPageHeader, StatusChip, adminCard } from "@/components/admin/AdminUi";
+import { AdminLoading, AdminPageHeader, NoAccess, StatusChip, adminCard } from "@/components/admin/AdminUi";
 import { occasionLabel, type Occasion } from "@/lib/catering";
 import { requireActiveAdmin } from "@/lib/admin/guards";
 import {
@@ -48,7 +48,8 @@ export default function LeadsPage({ searchParams }: PageProps<"/admin/leads">) {
 }
 
 async function LeadsContent({ searchParams }: Pick<PageProps<"/admin/leads">, "searchParams">) {
-  const { supabase } = await requireActiveAdmin();
+  const { supabase, adminUser } = await requireActiveAdmin();
+  if (!adminUser.canManageCatering) return <NoAccess area="catering leads" />;
   const sp = await searchParams;
   const status = isLeadStatus(sp.status) ? sp.status : null;
   const search = cleanLeadSearch(typeof sp.q === "string" ? sp.q : undefined);

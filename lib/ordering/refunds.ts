@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase-server";
 import { toPence, toPounds } from "./money";
+import { metadataOrderId, unmatched, type HandlerOutcome } from "./webhook-outcome";
 
 // Ported from the template's services/stripe/process-stripe-refund.ts: a refund ledger fed by
 // Stripe webhooks and by the kitchen's cancel button, with the order's refund summary recomputed
@@ -47,14 +48,20 @@ export async function upsertOrderRefund(refund: Stripe.Refund, orderId: string) 
   if (error) throw new Error(`ORDER_REFUND_UPSERT_FAILED:${error.message}`);
 }
 
-/** Recomputes refunded_total, refund_status and payment_refunded_at from the ledger. */
-export async function recomputeOrderRefundSummary(orderId: string) {
+type RefundSummaryStatus = "none" | "partial" | "full";
+
+/**
+ * Recomputes refunded_total, refund_status and payment_refunded_at from the ledger.
+ * Returns null if the order no longer exists.
+ */
+export async function recomputeOrderRefundSummary(orderId: string): Promise<RefundSummaryStatus | null> {
   const order = await supabase
     .from("orders")
     .select("total_amount, payment_refunded_at")
     .eq("id", orderId)
     .maybeSingle();
-  if (order.error || !order.data) throw new Error("ORDER_NOT_FOUND_FOR_REFUND_RECOMPUTE");
+  if (order.error) throw new Error(`ORDER_REFUND_RECOMPUTE_READ_FAILED:${order.error.message}`);
+  if (!order.data) return null;
 
   const ledger = await supabase.from("order_refunds").select("amount, status, processed_at").eq("order_id", orderId);
   if (ledger.error) throw new Error(`ORDER_REFUND_LEDGER_READ_FAILED:${ledger.error.message}`);
@@ -68,7 +75,8 @@ export async function recomputeOrderRefundSummary(orderId: string) {
   }
 
   const totalPence = toPence(order.data.total_amount);
-  const refundStatus = succeededPence <= 0 ? "none" : succeededPence >= totalPence ? "full" : "partial";
+  const refundStatus: RefundSummaryStatus =
+    succeededPence <= 0 ? "none" : succeededPence >= totalPence ? "full" : "partial";
 
   const update: Record<string, unknown> = { refunded_total: toPounds(succeededPence), refund_status: refundStatus };
   if (succeededPence > 0) {
@@ -81,44 +89,46 @@ export async function recomputeOrderRefundSummary(orderId: string) {
   return refundStatus;
 }
 
-async function findOrderForRefund(metadataOrderId: string | null, paymentIntentId: string | null) {
-  if (metadataOrderId) {
-    const { data } = await supabase.from("orders").select("id").eq("id", metadataOrderId).maybeSingle();
-    if (data) return data.id as string;
-  }
-  if (paymentIntentId) {
-    const { data } = await supabase.from("orders").select("id").eq("stripe_payment_intent_id", paymentIntentId).maybeSingle();
+async function findOrderForRefund(hintedOrderId: string | null, paymentIntentId: string | null) {
+  const lookups: [string, string | null][] = [
+    ["id", hintedOrderId],
+    ["stripe_payment_intent_id", paymentIntentId],
+  ];
+  for (const [column, value] of lookups) {
+    if (!value) continue;
+    const { data, error } = await supabase.from("orders").select("id").eq(column, value).maybeSingle();
+    if (error) throw new Error(`ORDER_LOOKUP_FAILED:${error.message}`);
     if (data) return data.id as string;
   }
   return null;
 }
 
 /** refund.created / refund.updated */
-export async function handleRefundEvent(event: Stripe.Event) {
+export async function handleRefundEvent(event: Stripe.Event): Promise<HandlerOutcome> {
   const refund = event.data.object as Stripe.Refund;
+  const hintedOrderId = metadataOrderId(refund.metadata);
   let paymentIntentId = idOf(refund.payment_intent);
   if (!paymentIntentId) {
     const chargeId = idOf(refund.charge);
-    if (chargeId) {
-      const charge = await getStripe().charges.retrieve(chargeId).catch(() => null);
-      paymentIntentId = idOf(charge?.payment_intent);
-    }
+    // A Stripe API error here throws, so the event fails and Stripe retries it.
+    if (chargeId) paymentIntentId = idOf((await getStripe().charges.retrieve(chargeId)).payment_intent);
   }
-  const orderId = await findOrderForRefund(refund.metadata?.order_id ?? null, paymentIntentId);
-  if (!orderId) throw new Error("ORDER_NOT_FOUND_FOR_REFUND");
+  const orderId = await findOrderForRefund(hintedOrderId, paymentIntentId);
+  if (!orderId) return unmatched(event, hintedOrderId);
   await upsertOrderRefund(refund, orderId);
-  await recomputeOrderRefundSummary(orderId);
+  if ((await recomputeOrderRefundSummary(orderId)) === null) return unmatched(event, orderId);
   return orderId;
 }
 
 /** charge.refunded: reconcile every refund on the charge. */
-export async function handleChargeRefunded(event: Stripe.Event) {
+export async function handleChargeRefunded(event: Stripe.Event): Promise<HandlerOutcome> {
   const charge = event.data.object as Stripe.Charge;
-  const orderId = await findOrderForRefund(null, idOf(charge.payment_intent));
-  if (!orderId) throw new Error("ORDER_NOT_FOUND_FOR_CHARGE_REFUNDED");
+  const hintedOrderId = metadataOrderId(charge.metadata);
+  const orderId = await findOrderForRefund(hintedOrderId, idOf(charge.payment_intent));
+  if (!orderId) return unmatched(event, hintedOrderId);
   const refunds = await getStripe().refunds.list({ charge: charge.id, limit: 100 });
   for (const refund of refunds.data) await upsertOrderRefund(refund, orderId);
-  await recomputeOrderRefundSummary(orderId);
+  if ((await recomputeOrderRefundSummary(orderId)) === null) return unmatched(event, orderId);
   return orderId;
 }
 
@@ -144,7 +154,9 @@ export async function refundOrderInFull(orderId: string): Promise<RefundResult> 
   const stripe = getStripe();
   const existing = await stripe.refunds.list({ payment_intent: order.stripe_payment_intent_id, limit: 100 });
   for (const refund of existing.data) await upsertOrderRefund(refund, orderId);
-  if ((await recomputeOrderRefundSummary(orderId)) === "full") return { ok: true };
+  const synced = await recomputeOrderRefundSummary(orderId);
+  if (synced === null) return { ok: false, message: "We couldn't find that order." };
+  if (synced === "full") return { ok: true };
   if (existing.data.some((refund) => refund.status === "pending")) {
     return { ok: false, message: "A refund is still processing. Try again in a minute." };
   }

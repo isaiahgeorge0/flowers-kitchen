@@ -1,7 +1,6 @@
 "use server";
 
 import { headers } from "next/headers";
-import { Resend } from "resend";
 import {
   ENQUIRY_MESSAGES,
   estimate,
@@ -9,18 +8,17 @@ import {
   type CateringEvent,
 } from "@/lib/catering";
 import { enquirySchema, type Enquiry } from "@/lib/catering-schema";
-import { cateringMail } from "@/lib/email-senders";
-import { buildEnquiryConfirmationEmail, buildEnquiryEmail } from "@/lib/enquiry-email";
-import { env } from "@/lib/env";
+import { sendEnquiryConfirmation, sendEnquiryNotification } from "@/lib/enquiry-mailer";
+import { clientIp, hit, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
 import { supabase } from "@/lib/supabase-server";
+import { verifyTurnstile } from "@/lib/turnstile";
 
-export type EnquiryInput = CateringEvent & { website?: string };
+export type EnquiryInput = CateringEvent & { website?: string; turnstileToken?: string };
 export type EnquiryResult = { ok: true } | { ok: false; message: string };
 
 const TABLE = "catering_enquiries";
 const DUPLICATE_WINDOW_MS = 5 * 60 * 1000;
-
-const resend = new Resend(env.RESEND_API_KEY);
+const IP_LIMIT = { limit: 3, windowMinutes: 60 };
 
 function describe(error: unknown) {
   if (error && typeof error === "object") {
@@ -37,6 +35,15 @@ function estimateText(enquiry: Enquiry) {
 
 export async function submitEnquiry(input: EnquiryInput): Promise<EnquiryResult> {
   const raw: unknown = input;
+  const ip = await clientIp();
+
+  const token = raw && typeof raw === "object" && "turnstileToken" in raw ? raw.turnstileToken : null;
+  try {
+    if ((await verifyTurnstile(token, ip)) === "failed") return { ok: false, message: ENQUIRY_MESSAGES.challenge };
+  } catch (error) {
+    console.error("[catering] Could not reach Turnstile:", describe(error));
+    return { ok: false, message: ENQUIRY_MESSAGES.failed };
+  }
 
   // Honeypot: people never see this field, bots fill it. Pretend it worked and do nothing.
   if (raw && typeof raw === "object" && "website" in raw) {
@@ -48,6 +55,9 @@ export async function submitEnquiry(input: EnquiryInput): Promise<EnquiryResult>
   if (!parsed.success) return { ok: false, message: ENQUIRY_MESSAGES.invalid };
   const enquiry = parsed.data;
   const shownEstimate = estimateText(enquiry);
+
+  const limited = await hit("catering-ip", ip, IP_LIMIT.limit, IP_LIMIT.windowMinutes);
+  if (!limited.ok) return { ok: false, message: RATE_LIMITED_MESSAGE };
 
   let saved: { id: string; created_at: string };
   try {
@@ -89,33 +99,15 @@ export async function submitEnquiry(input: EnquiryInput): Promise<EnquiryResult>
     return { ok: false, message: ENQUIRY_MESSAGES.failed };
   }
 
-  // The enquiry is saved, so the customer gets a success either way; a failed email is logged.
-  try {
-    const email = buildEnquiryEmail({
-      id: saved.id,
-      enquiry,
-      estimateText: shownEstimate,
-      receivedAt: new Date(saved.created_at),
-    });
-    const { error } = await resend.emails.send(
-      { from: cateringMail.from, to: cateringMail.shopInbox, replyTo: enquiry.email, ...email },
-      { idempotencyKey: `catering-enquiry-${saved.id}` },
-    );
-    if (error) throw error;
-  } catch (error) {
-    console.error(`[catering] Enquiry ${saved.id} saved but the notification email failed:`, describe(error));
-  }
-
-  try {
-    const email = buildEnquiryConfirmationEmail(enquiry);
-    const { error } = await resend.emails.send(
-      { from: cateringMail.from, to: enquiry.email, replyTo: cateringMail.replyTo, ...email },
-      { idempotencyKey: `catering-confirmation-${saved.id}` },
-    );
-    if (error) throw error;
-  } catch (error) {
-    console.error(`[catering] Enquiry ${saved.id} saved but the confirmation email failed:`, describe(error));
-  }
+  // The enquiry is saved, so the customer gets a success either way; a failed email is logged
+  // and the confirmation can be resent from the admin.
+  await sendEnquiryNotification({
+    id: saved.id,
+    enquiry,
+    estimateText: shownEstimate,
+    receivedAt: new Date(saved.created_at),
+  });
+  await sendEnquiryConfirmation(saved.id, enquiry);
 
   return { ok: true };
 }

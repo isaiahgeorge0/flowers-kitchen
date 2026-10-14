@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { LinkButton } from "@/components/Button";
-import { AdminLoading, AdminPageHeader, StatusChip, adminCard, adminH2 } from "@/components/admin/AdminUi";
+import { AdminLoading, AdminPageHeader, NoAccess, StatusChip, adminCard, adminH2 } from "@/components/admin/AdminUi";
 import { BUSINESS_TIME_ZONE, occasionLabel, todayISO, type Occasion } from "@/lib/catering";
 import { requireActiveAdmin } from "@/lib/admin/guards";
 import { formatEventDate } from "@/lib/admin/lead-status";
@@ -37,11 +37,14 @@ async function DashboardContent() {
   const { supabase, adminUser } = await requireActiveAdmin();
   const today = todayISO(BUSINESS_TIME_ZONE);
 
+  const catering = adminUser.canManageCatering;
   const [counts, upcoming, orderStats] = await Promise.all([
-    fetchLeadCounts(supabase),
-    fetchUpcomingEvents(supabase, today, addDays(today, UPCOMING_DAYS)),
+    catering ? fetchLeadCounts(supabase) : undefined,
+    catering ? fetchUpcomingEvents(supabase, today, addDays(today, UPCOMING_DAYS)) : [],
     adminUser.canManageOrders ? fetchTodayOrderStats(supabase) : Promise.resolve(undefined),
   ]);
+
+  if (!counts && orderStats === undefined) return <NoAccess area="orders or catering" />;
 
   return (
     <>
@@ -112,55 +115,59 @@ async function DashboardContent() {
         </section>
       )}
 
-      <h2 className={`${adminH2} mb-4`}>Catering</h2>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="New leads" value={counts.new} note="Waiting for a reply" href="/admin/leads?status=new" accent />
-        <Stat label="Quoted" value={counts.quoted} note="Waiting on the customer" href="/admin/leads?status=quoted" />
-        <Stat label="Booked" value={counts.booked} note="Confirmed events" href="/admin/leads?status=booked" />
-      </div>
-
-      <section className={`${adminCard} mt-8 p-6`} aria-labelledby="upcoming-heading">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="upcoming-heading" className={adminH2}>
-              Coming up
-            </h2>
-            <p className="mt-1 text-[15px] text-muted">
-              Booked and quoted events in the next {UPCOMING_DAYS} days.
-            </p>
+      {counts && (
+        <>
+          <h2 className={`${adminH2} mb-4`}>Catering</h2>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Stat label="New leads" value={counts.new} note="Waiting for a reply" href="/admin/leads?status=new" accent />
+            <Stat label="Quoted" value={counts.quoted} note="Waiting on the customer" href="/admin/leads?status=quoted" />
+            <Stat label="Booked" value={counts.booked} note="Confirmed events" href="/admin/leads?status=booked" />
           </div>
-        </div>
 
-        {upcoming.length === 0 ? (
-          <p className="mt-6 text-muted">Nothing booked or quoted for the next {UPCOMING_DAYS} days.</p>
-        ) : (
-          <ul className="mt-6 divide-y divide-hairline border-y border-hairline">
-            {upcoming.map((lead) => (
-              <li key={lead.id}>
-                <Link
-                  href={`/admin/leads/${lead.id}`}
-                  className="flex flex-col gap-2 py-4 hover:text-sorrel sm:flex-row sm:items-center sm:gap-6"
-                >
-                  <span className="font-semibold sm:w-44 sm:shrink-0">{formatEventDate(lead.eventDate)}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{lead.name}</span>
-                    <span className="block text-[15px] text-muted">
-                      {occasionLabel(lead.occasion as Occasion) ?? lead.occasion} · {lead.guests} guests
-                    </span>
-                  </span>
-                  <StatusChip status={lead.status} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+          <section className={`${adminCard} mt-8 p-6`} aria-labelledby="upcoming-heading">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 id="upcoming-heading" className={adminH2}>
+                  Coming up
+                </h2>
+                <p className="mt-1 text-[15px] text-muted">
+                  Booked and quoted events in the next {UPCOMING_DAYS} days.
+                </p>
+              </div>
+            </div>
 
-        <div className="mt-6">
-          <LinkButton href="/admin/leads" variant="secondary">
-            All catering leads
-          </LinkButton>
-        </div>
-      </section>
+            {upcoming.length === 0 ? (
+              <p className="mt-6 text-muted">Nothing booked or quoted for the next {UPCOMING_DAYS} days.</p>
+            ) : (
+              <ul className="mt-6 divide-y divide-hairline border-y border-hairline">
+                {upcoming.map((lead) => (
+                  <li key={lead.id}>
+                    <Link
+                      href={`/admin/leads/${lead.id}`}
+                      className="flex flex-col gap-2 py-4 hover:text-sorrel sm:flex-row sm:items-center sm:gap-6"
+                    >
+                      <span className="font-semibold sm:w-44 sm:shrink-0">{formatEventDate(lead.eventDate)}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">{lead.name}</span>
+                        <span className="block text-[15px] text-muted">
+                          {occasionLabel(lead.occasion as Occasion) ?? lead.occasion} · {lead.guests} guests
+                        </span>
+                      </span>
+                      <StatusChip status={lead.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="mt-6">
+              <LinkButton href="/admin/leads" variant="secondary">
+                All catering leads
+              </LinkButton>
+            </div>
+          </section>
+        </>
+      )}
     </>
   );
 }

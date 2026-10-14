@@ -94,6 +94,10 @@ export default function PrivacyPage() {
             Stripe Checkout runs on Stripe&apos;s own website, and Stripe&apos;s privacy policy covers the details you
             enter there.
           </li>
+          <li>
+            <strong>Cloudflare</strong> runs a quick check on the last step of the catering form to stop spam. It looks
+            at technical details from your browser, such as your IP address, and doesn&apos;t use them for advertising.
+          </li>
         </ul>
         <p>
           Some of these companies may process data outside the UK. Where they do, they use safeguards recognised under
@@ -116,6 +120,10 @@ export default function PrivacyPage() {
           {/* TODO: confirm retention periods with the client (CONTENT_TODO.md). */}
           <li>Catering enquiries: XX months after we last hear from you, then deleted.</li>
           <li>Orders: X years, for our accounts.</li>
+          <li>
+            Payment event records are kept for 90 days, then the personal details in them are deleted. Order records
+            are kept for accounting.
+          </li>
         </ul>
       </LegalSection>
 

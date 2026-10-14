@@ -191,6 +191,8 @@ export const ENQUIRY_MESSAGES = {
     "We've just received an enquiry from this email address. Please give it a few minutes before sending another, or message us on Instagram.",
   invalid:
     "Some of your details need another look. Please check each step and try again, or message us on Instagram.",
+  challenge:
+    "We couldn't confirm you're not a bot. Please complete the check above the button and try again, or message us on Instagram.",
 } as const;
 
 export function validateStep(

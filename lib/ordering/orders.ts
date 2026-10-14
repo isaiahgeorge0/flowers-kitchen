@@ -34,6 +34,8 @@ export type OrderDetail = {
   slotOverCapacity: boolean;
   source: OrderSource;
   refundedPence: number;
+  /** Only loaded for the admin (ADMIN_ORDER_SELECT). */
+  confirmationEmailSentAt?: string | null;
   items: { id: string; name: string; quantity: number; unitPence: number; lineTotalPence: number; options: string[] }[];
 };
 
@@ -48,6 +50,8 @@ export const ORDER_SELECT = `
     order_item_options ( option_name_snapshot, created_at )
   )
 `;
+
+export const ADMIN_ORDER_SELECT = `${ORDER_SELECT}, confirmation_email_sent_at`;
 
 type OrderRow = {
   id: string;
@@ -77,6 +81,7 @@ type OrderRow = {
   scheduled_for: string | null;
   slot_over_capacity: boolean | null;
   source: string | null;
+  confirmation_email_sent_at?: string | null;
   order_items: {
     id: string;
     item_name_snapshot: string;
@@ -118,6 +123,7 @@ export function mapOrder(row: OrderRow): OrderDetail {
     slotOverCapacity: row.slot_over_capacity === true,
     source: row.source === "qr" ? "qr" : "web",
     refundedPence: toPence(row.refunded_total ?? 0),
+    ...(row.confirmation_email_sent_at !== undefined && { confirmationEmailSentAt: row.confirmation_email_sent_at }),
     items: [...row.order_items]
       .sort((a, b) => a.item_name_snapshot.localeCompare(b.item_name_snapshot) || a.id.localeCompare(b.id))
       .map((item) => ({

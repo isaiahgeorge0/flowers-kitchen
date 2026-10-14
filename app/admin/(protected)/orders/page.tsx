@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { AdminLoading, AdminPageHeader, adminCard } from "@/components/admin/AdminUi";
+import { AdminLoading, AdminPageHeader, NoAccess } from "@/components/admin/AdminUi";
 import { KitchenBoard } from "@/components/admin/kitchen/KitchenBoard";
 import { requireActiveAdmin } from "@/lib/admin/guards";
 import { fetchKitchenOrders } from "@/lib/admin/orders";
@@ -24,13 +24,7 @@ export default function OrdersPage() {
 
 async function OrdersContent() {
   const { supabase, adminUser } = await requireActiveAdmin();
-  if (!adminUser.canManageOrders) {
-    return (
-      <p className={`${adminCard} px-6 py-10 text-center text-muted`}>
-        Your account doesn&rsquo;t have access to orders. Ask the owner if you need it.
-      </p>
-    );
-  }
+  if (!adminUser.canManageOrders) return <NoAccess area="orders" />;
 
   const [{ orders, failed, fetchedAt }, settings] = await Promise.all([
     fetchKitchenOrders(supabase),

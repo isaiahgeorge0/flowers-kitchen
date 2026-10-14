@@ -7,7 +7,7 @@ import { requireAdminForAction } from "@/lib/admin/guards";
 import { isUuid } from "@/lib/admin/orders";
 import { PAUSE_OPTIONS } from "@/lib/ordering/limits";
 import { readOrderingSettings, SETTINGS_TAG } from "@/lib/ordering/menu";
-import { sendCancellationEmail, sendReadyEmail } from "@/lib/ordering/order-mailer";
+import { resendOrderReceipt, sendCancellationEmail, sendReadyEmail } from "@/lib/ordering/order-mailer";
 import type { OrderStatus } from "@/lib/ordering/orders";
 import { refundOrderInFull } from "@/lib/ordering/refunds";
 import { supabase as serverSupabase } from "@/lib/supabase-server";
@@ -107,6 +107,23 @@ export async function cancelOrderAction(orderId: string, reason: string): Promis
   }
   const emailed = await sendCancellationEmail(orderId);
   return { ok: true, emailed };
+}
+
+/** Resends the customer's receipt if it never went out; never sends it twice. */
+export async function resendReceiptAction(orderId: string): Promise<KitchenActionResult> {
+  const auth = await kitchenAuth();
+  if (!auth.ok) return auth;
+  if (!isUuid(orderId)) return { ok: false, message: "We couldn't find that order." };
+
+  // RLS check first: the mailer reads with the secret key.
+  const { data } = await auth.ctx.supabase.from("orders").select("id").eq("id", orderId).maybeSingle();
+  if (!data) return { ok: false, message: "We couldn't find that order." };
+
+  const result = await resendOrderReceipt(orderId);
+  refresh();
+  if (result === "sent" || result === "already-sent") return { ok: true };
+  if (result === "not-paid") return { ok: false, message: "This order isn't paid, so there's no receipt to send." };
+  return { ok: false, message: "The email didn't send. Try again in a few minutes." };
 }
 
 async function pauseAuth() {

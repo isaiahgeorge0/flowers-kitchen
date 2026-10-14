@@ -32,6 +32,7 @@ export type Lead = LeadListItem & {
   estimateText: string;
   internalNotes: string | null;
   quotedAmount: number | null;
+  confirmationEmailSentAt: string | null;
 };
 
 type LeadRow = {
@@ -54,11 +55,12 @@ type LeadRow = {
   estimate_text: string;
   internal_notes: string | null;
   quoted_amount: number | string | null;
+  confirmation_email_sent_at: string | null;
 };
 
 const LIST_COLUMNS = "id, created_at, status, occasion, guests, event_date, name, email";
 const DETAIL_COLUMNS =
-  "id, created_at, updated_at, status, occasion, guests, service, mains, extras, event_date, event_time, postcode, name, email, phone, notes, estimate_text, internal_notes, quoted_amount";
+  "id, created_at, updated_at, status, occasion, guests, service, mains, extras, event_date, event_time, postcode, name, email, phone, notes, estimate_text, internal_notes, quoted_amount, confirmation_email_sent_at";
 
 function toListItem(row: Pick<LeadRow, "id" | "created_at" | "status" | "occasion" | "guests" | "event_date" | "name" | "email">): LeadListItem {
   return {
@@ -138,6 +140,7 @@ export async function fetchLead(supabase: SupabaseClient, id: string): Promise<L
     estimateText: data.estimate_text,
     internalNotes: data.internal_notes,
     quotedAmount: data.quoted_amount === null ? null : Number(data.quoted_amount),
+    confirmationEmailSentAt: data.confirmation_email_sent_at,
   };
 }
 

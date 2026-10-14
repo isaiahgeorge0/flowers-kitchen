@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { buttonClasses } from "@/components/Button";
 import { Eyebrow } from "@/components/Eyebrow";
-import { AdminLoading, StatusChip, adminCard, adminH2 } from "@/components/admin/AdminUi";
-import { LeadDetailsForm, LeadStatusPicker } from "@/components/admin/LeadManager";
+import { AdminLoading, NoAccess, StatusChip, adminCard, adminH2 } from "@/components/admin/AdminUi";
+import { LeadConfirmationStatus, LeadDetailsForm, LeadStatusPicker } from "@/components/admin/LeadManager";
 import { mainName, occasionLabel, serviceLabel, type Occasion, type ServiceStyle } from "@/lib/catering";
+import { emailOverdue } from "@/lib/admin/email-status";
 import { requireActiveAdmin } from "@/lib/admin/guards";
 import { formatEventDate, formatQuote, formatTimestamp } from "@/lib/admin/lead-status";
 import { fetchLead, type Lead } from "@/lib/admin/leads";
@@ -41,7 +42,8 @@ export default function LeadPage({ params }: PageProps<"/admin/leads/[id]">) {
 }
 
 async function LeadContent({ params }: Pick<PageProps<"/admin/leads/[id]">, "params">) {
-  const { supabase } = await requireActiveAdmin();
+  const { supabase, adminUser } = await requireActiveAdmin();
+  if (!adminUser.canManageCatering) return <NoAccess area="catering leads" />;
   const { id } = await params;
   const lead = await fetchLead(supabase, id);
 
@@ -70,6 +72,7 @@ async function LeadContent({ params }: Pick<PageProps<"/admin/leads/[id]">, "par
           <span>Received {formatTimestamp(lead.createdAt)}</span>
           <span>Updated {formatTimestamp(lead.updatedAt)}</span>
         </div>
+        <LeadConfirmationStatus id={lead.id} overdue={emailOverdue(lead.confirmationEmailSentAt, lead.createdAt)} />
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a href={replyHref(lead)} className={buttonClasses("primary", "md")}>
             Reply by email

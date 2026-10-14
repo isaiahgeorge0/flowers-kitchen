@@ -49,3 +49,20 @@ export function StatusChip({ status }: { status: LeadStatus }) {
     </span>
   );
 }
+
+/** For staff whose account doesn't include this part of the admin. */
+export function NoAccess({ area }: { area: string }) {
+  return (
+    <p className={`${adminCard} px-6 py-10 text-center text-muted`}>
+      Your account doesn&rsquo;t have access to {area}. Ask the owner if you need it.
+    </p>
+  );
+}
+
+export function EmailNotSentChip() {
+  return (
+    <span className="inline-flex min-h-7 items-center whitespace-nowrap rounded-pill border border-sorrel px-2.5 text-[13px] font-semibold uppercase leading-none tracking-[0.08em] text-sorrel">
+      Email not sent
+    </span>
+  );
+}

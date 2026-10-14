@@ -54,20 +54,20 @@ async function loadWithFlags(orderId: string) {
   return { order, flags: flags.data as Record<SentColumn, string | null> };
 }
 
+const sendReceipt = (order: OrderDetail) =>
+  sendOnce(order, "confirmation_email_sent_at", "order-confirmation", {
+    to: order.customerEmail,
+    replyTo: orderMail.replyTo,
+    ...buildCustomerOrderEmail(order),
+  });
+
 /** Receipt to the customer and a backup copy to the shop, once the payment is confirmed. */
 export async function sendOrderEmails(orderId: string) {
   const loaded = await loadWithFlags(orderId);
   if (!loaded) return;
   const { order, flags } = loaded;
 
-  if (!flags.confirmation_email_sent_at) {
-    const email = buildCustomerOrderEmail(order);
-    await sendOnce(order, "confirmation_email_sent_at", "order-confirmation", {
-      to: order.customerEmail,
-      replyTo: orderMail.replyTo,
-      ...email,
-    });
-  }
+  if (!flags.confirmation_email_sent_at) await sendReceipt(order);
   if (!flags.shop_email_sent_at) {
     const email = buildShopOrderEmail(order);
     await sendOnce(order, "shop_email_sent_at", "order-shop", {
@@ -76,6 +76,16 @@ export async function sendOrderEmails(orderId: string) {
       ...email,
     });
   }
+}
+
+/** Retries the customer's receipt from the kitchen board, only if it never went out. */
+export async function resendOrderReceipt(orderId: string): Promise<"sent" | "already-sent" | "not-paid" | "failed"> {
+  const loaded = await loadWithFlags(orderId);
+  if (!loaded) return "failed";
+  const { order, flags } = loaded;
+  if (flags.confirmation_email_sent_at) return "already-sent";
+  if (order.paymentStatus !== "paid") return "not-paid";
+  return (await sendReceipt(order)) ? "sent" : "failed";
 }
 
 /** Tells the customer their paid order was cancelled and refunded. Returns false if it couldn't be sent. */

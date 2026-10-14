@@ -6,15 +6,18 @@ import { toPence } from "./money";
 import { sendOrderEmails } from "./order-mailer";
 import { handleChargeRefunded, handleRefundEvent, refundOrderInFull } from "./refunds";
 import { isOverSlotCapacity } from "./slot-capacity";
+import { isIgnored, metadataOrderId, unmatched, type HandlerOutcome, type IgnoreReason } from "./webhook-outcome";
 
 // Ported from the template's services/stripe/process-webhook-event.ts. Every event is recorded
 // once in stripe_webhook_events (unique Stripe event id); a retry of an event that already
-// succeeded is a no-op, a retry of one that failed runs again. Each handler is idempotent too.
+// succeeded (or was ignored) is a no-op, a retry of one that failed runs again. Each handler is
+// idempotent too. Events for objects that aren't site orders are ignored with a 200; only real
+// failures (Supabase, Stripe API) return 500 so Stripe retries them.
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 export type WebhookResult =
-  | { ok: true; duplicate: boolean }
+  | { ok: true; duplicate: boolean; ignored?: IgnoreReason }
   | { ok: false; duplicate: boolean; message: string };
 
 function log(message: string, data?: Record<string, unknown>) {
@@ -51,7 +54,8 @@ async function findOrder(refs: { orderId?: string | null; paymentIntentId?: stri
   ];
   for (const [column, value] of lookups) {
     if (!value) continue;
-    const { data } = await supabase.from("orders").select(ORDER_PAYMENT_SELECT).eq(column, value).maybeSingle();
+    const { data, error } = await supabase.from("orders").select(ORDER_PAYMENT_SELECT).eq(column, value).maybeSingle();
+    if (error) throw new Error(`ORDER_LOOKUP_FAILED:${error.message}`);
     if (data) return data as OrderPaymentRow;
   }
   return null;
@@ -130,11 +134,12 @@ async function markOrderPaid(
   await sendOrderEmails(order.id);
 }
 
-async function handleCheckoutSessionCompleted(event: Stripe.Event) {
+async function handleCheckoutSessionCompleted(event: Stripe.Event): Promise<HandlerOutcome> {
   const session = event.data.object as Stripe.Checkout.Session;
   const paymentIntentId = idOf(session.payment_intent);
-  const order = await findOrder({ orderId: session.metadata?.order_id, paymentIntentId, sessionId: session.id });
-  if (!order) throw new Error("ORDER_NOT_FOUND_FOR_CHECKOUT_SESSION");
+  const orderId = metadataOrderId(session.metadata);
+  const order = await findOrder({ orderId, paymentIntentId, sessionId: session.id });
+  if (!order) return unmatched(event, orderId);
   if (session.payment_status !== "paid") {
     await supabase
       .from("orders")
@@ -151,10 +156,11 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   return order.id;
 }
 
-async function handleCheckoutSessionExpired(event: Stripe.Event) {
+async function handleCheckoutSessionExpired(event: Stripe.Event): Promise<HandlerOutcome> {
   const session = event.data.object as Stripe.Checkout.Session;
-  const order = await findOrder({ orderId: session.metadata?.order_id, sessionId: session.id });
-  if (!order) return null; // Orders that failed to start are deleted; nothing to do.
+  const orderId = metadataOrderId(session.metadata);
+  const order = await findOrder({ orderId, sessionId: session.id });
+  if (!order) return unmatched(event, orderId);
   await supabase
     .from("orders")
     .update({ order_status: "cancelled", cancelled_at: new Date().toISOString(), cancel_reason: "Checkout expired before payment" })
@@ -164,18 +170,20 @@ async function handleCheckoutSessionExpired(event: Stripe.Event) {
   return order.id;
 }
 
-async function handlePaymentIntentSucceeded(event: Stripe.Event) {
+async function handlePaymentIntentSucceeded(event: Stripe.Event): Promise<HandlerOutcome> {
   const intent = event.data.object as Stripe.PaymentIntent;
-  const order = await findOrder({ orderId: intent.metadata?.order_id, paymentIntentId: intent.id });
-  if (!order) throw new Error("ORDER_NOT_FOUND_FOR_PAYMENT_INTENT");
+  const orderId = metadataOrderId(intent.metadata);
+  const order = await findOrder({ orderId, paymentIntentId: intent.id });
+  if (!order) return unmatched(event, orderId);
   await markOrderPaid(order, { paymentIntentId: intent.id, amountPence: intent.amount_received, currency: intent.currency });
   return order.id;
 }
 
-async function handlePaymentIntentFailed(event: Stripe.Event) {
+async function handlePaymentIntentFailed(event: Stripe.Event): Promise<HandlerOutcome> {
   const intent = event.data.object as Stripe.PaymentIntent;
-  const order = await findOrder({ orderId: intent.metadata?.order_id, paymentIntentId: intent.id });
-  if (!order) throw new Error("ORDER_NOT_FOUND_FOR_PAYMENT_INTENT");
+  const orderId = metadataOrderId(intent.metadata);
+  const order = await findOrder({ orderId, paymentIntentId: intent.id });
+  if (!order) return unmatched(event, orderId);
   // Checkout lets the customer try another card, so this only records the attempt.
   await supabase
     .from("orders")
@@ -190,15 +198,27 @@ async function handlePaymentIntentFailed(event: Stripe.Event) {
   return order.id;
 }
 
-async function markEvent(stripeEventId: string, status: "processing" | "processed" | "failed", extra: Record<string, unknown> = {}) {
-  await supabase
+type LedgerStatus = "processing" | "processed" | "ignored" | "failed";
+
+async function markEvent(stripeEventId: string, status: LedgerStatus, extra: Record<string, unknown> = {}) {
+  const { error } = await supabase
     .from("stripe_webhook_events")
     .update({
       processing_status: status,
-      ...(status === "processed" && { processed_at: new Date().toISOString(), failure_reason: null }),
+      ...((status === "processed" || status === "ignored") && {
+        processed_at: new Date().toISOString(),
+        failure_reason: null,
+      }),
       ...extra,
     })
     .eq("stripe_event_id", stripeEventId);
+  return error;
+}
+
+async function markIgnored(stripeEventId: string, reason: IgnoreReason) {
+  const error = await markEvent(stripeEventId, "ignored", { failure_reason: reason });
+  // Until migration 005 is applied the check constraint rejects 'ignored' (23514).
+  if (error?.code === "23514") await markEvent(stripeEventId, "processed", { failure_reason: `ignored: ${reason}` });
 }
 
 export async function processStripeWebhookEvent(event: Stripe.Event): Promise<WebhookResult> {
@@ -217,7 +237,7 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
       .select("processing_status")
       .eq("stripe_event_id", event.id)
       .maybeSingle();
-    if (data?.processing_status === "processed") return { ok: true, duplicate };
+    if (data?.processing_status === "processed" || data?.processing_status === "ignored") return { ok: true, duplicate };
   } else if (insertError) {
     console.error("[stripe/webhook] Could not record event:", describe(insertError));
     return { ok: false, duplicate, message: "EVENT_PERSIST_FAILED" };
@@ -226,32 +246,37 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
   await markEvent(event.id, "processing");
 
   try {
-    let relatedOrderId: string | null = null;
+    let outcome: HandlerOutcome = null;
     switch (event.type) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded":
-        relatedOrderId = await handleCheckoutSessionCompleted(event);
+        outcome = await handleCheckoutSessionCompleted(event);
         break;
       case "checkout.session.expired":
-        relatedOrderId = await handleCheckoutSessionExpired(event);
+        outcome = await handleCheckoutSessionExpired(event);
         break;
       case "payment_intent.succeeded":
-        relatedOrderId = await handlePaymentIntentSucceeded(event);
+        outcome = await handlePaymentIntentSucceeded(event);
         break;
       case "payment_intent.payment_failed":
-        relatedOrderId = await handlePaymentIntentFailed(event);
+        outcome = await handlePaymentIntentFailed(event);
         break;
       case "refund.created":
       case "refund.updated":
-        relatedOrderId = await handleRefundEvent(event);
+        outcome = await handleRefundEvent(event);
         break;
       case "charge.refunded":
-        relatedOrderId = await handleChargeRefunded(event);
+        outcome = await handleChargeRefunded(event);
         break;
       default:
         log("event recorded only", { type: event.type });
     }
-    await markEvent(event.id, "processed", { related_order_id: relatedOrderId });
+    if (isIgnored(outcome)) {
+      log("event ignored", { type: event.type, reason: outcome.reason });
+      await markIgnored(event.id, outcome.reason);
+      return { ok: true, duplicate, ignored: outcome.reason };
+    }
+    await markEvent(event.id, "processed", { related_order_id: outcome });
     return { ok: true, duplicate };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown webhook processing failure";

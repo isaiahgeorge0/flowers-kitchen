@@ -5,6 +5,7 @@ import { requireAdminForAction } from "@/lib/admin/guards";
 import { isLeadStatus, LEAD_STATUS_LABELS } from "@/lib/admin/lead-status";
 import { isLeadId } from "@/lib/admin/leads";
 import type { AdminActionState } from "@/lib/admin/types";
+import { resendEnquiryConfirmation } from "@/lib/enquiry-mailer";
 
 const NOTES_MAX = 5000;
 const QUOTE_MAX = 1_000_000;
@@ -19,8 +20,17 @@ const success = (message: string): AdminActionState => ({ ok: true, message, at:
 
 type LeadUpdate = { status?: string; quoted_amount?: number | null; internal_notes?: string | null };
 
-async function updateLead(id: string, changes: LeadUpdate): Promise<string | null> {
+async function cateringAuth() {
   const auth = await requireAdminForAction();
+  if (!auth.ok) return auth;
+  if (!auth.ctx.adminUser.canManageCatering) {
+    return { ok: false as const, message: "You don't have access to catering leads." };
+  }
+  return auth;
+}
+
+async function updateLead(id: string, changes: LeadUpdate): Promise<string | null> {
+  const auth = await cateringAuth();
   if (!auth.ok) return auth.message;
   if (!isLeadId(id)) return "We couldn't find that lead.";
 
@@ -85,4 +95,25 @@ export async function updateLeadDetailsAction(
 
   refresh();
   return success("Saved.");
+}
+
+export async function resendLeadConfirmationAction(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const auth = await cateringAuth();
+  if (!auth.ok) return fail(auth.message);
+  const id = String(formData.get("id") ?? "");
+  if (!isLeadId(id)) return fail("We couldn't find that lead.");
+
+  // RLS check first: the mailer reads with the secret key.
+  const { data } = await auth.ctx.supabase.from("catering_enquiries").select("id").eq("id", id).maybeSingle();
+  if (!data) return fail("We couldn't find that lead.");
+
+  const result = await resendEnquiryConfirmation(id);
+  refresh();
+  if (result === "sent") return success("Confirmation sent.");
+  if (result === "already-sent") return success("Their confirmation has already gone out.");
+  if (result === "not-found") return fail("We couldn't find that lead.");
+  return fail("The email didn't send. Try again in a few minutes.");
 }

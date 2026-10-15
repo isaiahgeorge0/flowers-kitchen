@@ -12,7 +12,8 @@ import { toPounds } from "./money";
 import { cartInputSchema, priceCart } from "./pricing";
 import { canSchedule, findSlot, formatCollectionLong } from "./schedule";
 import { liveSchedule } from "./slot-capacity";
-import type { CartLine, OrderSource } from "./types";
+import { basketSidesNote } from "./sides";
+import type { BasketFlag, CartLine, OrderSource } from "./types";
 
 // A Checkout Session stays payable for this long; Stripe's minimum is 30 minutes.
 const SESSION_MINUTES = 31;
@@ -27,6 +28,8 @@ export type StartCheckoutResult =
       message: string;
       fieldErrors?: CustomerErrors;
       cart?: CartLine[];
+      /** A basket line that can't be ordered as it is (a choice ran out, or the box sold out). */
+      flag?: BasketFlag;
       /** The chosen collection time is no longer available; the picker should reload. */
       slotsChanged?: boolean;
     };
@@ -143,7 +146,7 @@ export async function startCheckout(input: {
     console.error("[checkout] Could not check the basket:", describe(error));
     return { ok: false, message: FAILED };
   }
-  if (!priced.ok) return { ok: false, message: priced.message };
+  if (!priced.ok) return { ok: false, message: priced.message, flag: priced.flag };
 
   // Never charge a different amount from the one the customer saw on the Pay button.
   if (priced.totalPence !== input.expectedTotalPence) {
@@ -232,6 +235,7 @@ export async function startCheckout(input: {
         options_unit_total_snapshot: toPounds(line.optionsPence),
         quantity: line.quantity,
         line_total: toPounds(line.lineTotalPence),
+        missing_sides: line.missingSides.length ? line.missingSides : null,
       })),
     );
     if (itemsResult.error) throw itemsResult.error;
@@ -269,8 +273,10 @@ export async function startCheckout(input: {
             unit_amount: line.unitPence,
             product_data: {
               name: `${line.name} box`,
-              ...(line.options.length > 0 && {
-                description: line.options.map((option) => option.optionName).join(", "),
+              ...((line.options.length > 0 || line.missingSides.length > 0) && {
+                description: [line.options.map((option) => option.optionName).join(", "), basketSidesNote(line.missingSides)]
+                  .filter(Boolean)
+                  .join(" "),
               }),
             },
           },

@@ -2,6 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { supabase } from "@/lib/supabase-server";
 import { readOrderingSettings } from "./menu";
+import { snapshotMissingSides } from "./missing-sides";
 import { toPence } from "./money";
 import { sendOrderEmails } from "./order-mailer";
 import { handleChargeRefunded, handleRefundEvent, refundOrderInFull } from "./refunds";
@@ -130,6 +131,7 @@ async function markOrderPaid(
     console.warn(`[stripe/webhook] Order #${order.order_number} was paid after it was cancelled; refunded:`, refund.ok);
     return;
   }
+  await snapshotMissingSides(order.id);
   await flagIfOverCapacity(order);
   await sendOrderEmails(order.id);
 }

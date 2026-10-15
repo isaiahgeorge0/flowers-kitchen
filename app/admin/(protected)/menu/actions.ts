@@ -20,7 +20,7 @@ const fail = (message: string, values?: Record<string, string>): AdminActionStat
 });
 const success = (message: string): AdminActionState => ({ ok: true, message, at: Date.now() });
 
-/** Kitchen staff (orders) may flip sold-out and rice availability; menu staff may edit everything. */
+/** Kitchen staff (orders) may flip sold-out and shared items; menu staff may edit everything. */
 async function menuAuth(level: "toggle" | "edit") {
   const auth = await requireAdminForAction();
   if (!auth.ok) return auth;
@@ -101,40 +101,58 @@ export async function setSoldOutAction(itemId: string, soldOut: boolean): Promis
   return { ok: true };
 }
 
+/**
+ * One option on one box. Owners only: the kitchen uses the shared switches instead. A box left
+ * with nothing to choose shows as sold out by itself.
+ */
 export async function setOptionAvailableAction(optionId: string, available: boolean): Promise<ToggleResult> {
-  const auth = await menuAuth("toggle");
+  const auth = await menuAuth("edit");
   if (!auth.ok) return auth;
   if (!isUuid(optionId)) return { ok: false, message: "We couldn't find that option." };
-  const { supabase } = auth.ctx;
 
-  if (!available) {
-    const { data: option } = await supabase
-      .from("menu_item_options")
-      .select("option_group_id, menu_item_option_groups ( is_required )")
-      .eq("id", optionId)
-      .maybeSingle();
-    if (!option) return { ok: false, message: "We couldn't find that option." };
-    const group = option.menu_item_option_groups as unknown as { is_required: boolean } | null;
-    if (group?.is_required) {
-      const { count } = await supabase
-        .from("menu_item_options")
-        .select("id", { count: "exact", head: true })
-        .eq("option_group_id", option.option_group_id)
-        .eq("is_available", true)
-        .neq("id", optionId);
-      if (!count) {
-        return { ok: false, message: "Keep at least one rice option on, or mark the box sold out instead." };
-      }
-    }
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await auth.ctx.supabase
     .from("menu_item_options")
     .update({ is_available: available === true })
     .eq("id", optionId)
     .select("id")
     .maybeSingle();
   if (error || !data) return { ok: false, message: "We couldn't change that. Try again." };
+
+  menuChanged();
+  return { ok: true };
+}
+
+/** A shared choice or included side, on every box at once. Kitchen staff can use it. */
+export async function setSharedItemAvailableAction(componentId: string, available: boolean): Promise<ToggleResult> {
+  const auth = await menuAuth("toggle");
+  if (!auth.ok) return auth;
+  if (!isUuid(componentId)) return { ok: false, message: "We couldn't find that item." };
+
+  const { data, error } = await auth.ctx.supabase
+    .from("menu_components")
+    .update({ is_available: available === true })
+    .eq("id", componentId)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) return { ok: false, message: "We couldn't change that. Try again." };
+
+  menuChanged();
+  return { ok: true };
+}
+
+/** Which included sides come in a box. */
+export async function setBoxSideAction(itemId: string, componentId: string, included: boolean): Promise<ToggleResult> {
+  const auth = await menuAuth("edit");
+  if (!auth.ok) return auth;
+  if (!isUuid(itemId) || !isUuid(componentId)) return { ok: false, message: "We couldn't find that box." };
+  const { supabase } = auth.ctx;
+
+  const { error } = included
+    ? await supabase
+        .from("menu_item_components")
+        .upsert({ menu_template_item_id: itemId, component_id: componentId }, { ignoreDuplicates: true })
+    : await supabase.from("menu_item_components").delete().eq("menu_template_item_id", itemId).eq("component_id", componentId);
+  if (error) return { ok: false, message: "We couldn't change that. Try again." };
 
   menuChanged();
   return { ok: true };

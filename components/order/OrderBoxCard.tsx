@@ -1,9 +1,10 @@
 import { Plus } from "lucide-react";
 import { cardBody, cardFrame, cardLift } from "@/components/BoxCard";
 import { Button } from "@/components/Button";
+import { Dotted } from "@/components/Dotted";
 import { Photo } from "@/components/Photo";
-import { SIDES } from "@/lib/menu";
 import { formatPence } from "@/lib/ordering/money";
+import { boxSidesLine, boxSidesNote } from "@/lib/ordering/sides";
 import type { MenuBox } from "@/lib/ordering/types";
 import { caps, h3 } from "@/lib/typography";
 
@@ -11,6 +12,8 @@ export function OrderBoxCard({ box, canOrder, onAdd }: { box: MenuBox; canOrder:
   // Only local images: remote hosts would need adding to next.config first.
   const image = box.imageUrl?.startsWith("/") ? box.imageUrl : undefined;
   const interactive = canOrder && !box.soldOut;
+  const sides = boxSidesLine(box);
+  const sidesNote = box.soldOut ? null : boxSidesNote(box);
 
   return (
     <article className={`${cardFrame} ${interactive ? cardLift : ""} ${box.soldOut ? "text-muted" : ""}`}>
@@ -20,7 +23,16 @@ export function OrderBoxCard({ box, canOrder, onAdd }: { box: MenuBox; canOrder:
 
       <div className={cardBody}>
         <h3 className={h3}>{box.name}</h3>
-        <p className="text-[15px] leading-[1.55] text-muted">{box.description || SIDES}</p>
+        {sides.length > 0 ? (
+          <div className="text-[15px] leading-[1.55] text-muted">
+            <p>
+              <Dotted items={sides} />
+            </p>
+            {sidesNote && <p className="mt-1 font-semibold text-sorrel" data-sides-note>{sidesNote}</p>}
+          </div>
+        ) : (
+          box.description && <p className="text-[15px] leading-[1.55] text-muted">{box.description}</p>
+        )}
         <p className="text-[15px] leading-[1.55] text-muted">
           <span className="font-semibold text-pimento">Allergens:</span> {box.allergens || "To be confirmed"}
         </p>
@@ -31,7 +43,7 @@ export function OrderBoxCard({ box, canOrder, onAdd }: { box: MenuBox; canOrder:
           </p>
           {box.soldOut ? (
             <p className={`inline-flex min-h-11 items-center rounded-pill border border-hairline px-5 ${caps} tracking-[0.08em] text-muted`}>
-              Sold out<span className="sr-only"> — {box.name}</span>
+              Sold out today<span className="sr-only"> — {box.name}</span>
             </p>
           ) : (
             <Button onClick={onAdd} disabled={!canOrder} aria-haspopup="dialog" className="pl-5">

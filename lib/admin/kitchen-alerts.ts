@@ -63,20 +63,3 @@ export async function playNewOrderAlert(): Promise<boolean> {
     return false;
   }
 }
-
-// Ported from kitchen-order-timers.ts: minutes in the current column before a card is flagged.
-export const URGENCY_MINUTES = {
-  confirmed: { attention: 5, urgent: 10 },
-  preparing: { attention: 15, urgent: 30 },
-  ready_for_collection: { attention: 20, urgent: 45 },
-} as const;
-
-export type Urgency = "normal" | "attention" | "urgent";
-
-export function urgencyFor(status: string, minutesInStatus: number): Urgency {
-  const row = URGENCY_MINUTES[status as keyof typeof URGENCY_MINUTES];
-  if (!row) return "normal";
-  if (minutesInStatus >= row.urgent) return "urgent";
-  if (minutesInStatus >= row.attention) return "attention";
-  return "normal";
-}

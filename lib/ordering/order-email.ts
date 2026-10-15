@@ -4,6 +4,7 @@ import { COLLECTION_ADDRESS } from "./limits";
 import { formatPence } from "./money";
 import { formatClock, type OrderDetail } from "./orders";
 import { formatCollectionLong } from "./schedule";
+import { kitchenSidesNote, orderHeadsUp } from "./sides";
 
 // Brand tokens from .cursor/rules/brand.mdc. Email clients need inline styles.
 const C = {
@@ -36,7 +37,7 @@ const contactHtml = () =>
     : "Questions? Just reply to this email.";
 const contactText = () => (shopPhone ? `Questions? Reply to this email or call us on ${shopPhone}.` : "Questions? Just reply to this email.");
 
-function itemsTable(order: OrderDetail) {
+function itemsTable(order: OrderDetail, { kitchen = false } = {}) {
   const cell = `padding:12px 0;border-bottom:1px solid ${C.hairline};vertical-align:top;font-family:${SANS};font-size:15px;line-height:1.5;color:${C.pimento};`;
   const rows = order.items
     .map(
@@ -44,6 +45,10 @@ function itemsTable(order: OrderDetail) {
         <td style="${cell}">${item.quantity} × ${escapeHtml(item.name)} box${
           item.options.length
             ? `<br><span style="color:${C.muted};font-size:14px;">${escapeHtml(item.options.join(", "))}</span>`
+            : ""
+        }${
+          kitchen && item.missingSides.length
+            ? `<br><span style="color:${C.sorrel};font-size:14px;font-weight:600;">${escapeHtml(kitchenSidesNote(item.missingSides) ?? "")}</span>`
             : ""
         }</td>
         <td align="right" style="${cell}white-space:nowrap;padding-left:16px;">${formatPence(item.lineTotalPence)}</td>
@@ -103,12 +108,15 @@ export function buildCustomerOrderEmail(order: OrderDetail) {
     ? `We've got your order. It will be ready to collect on <strong>${escapeHtml(ready)}</strong>.`
     : `We've got your order and we're cooking. It will be ready to collect at <strong>${escapeHtml(ready)}</strong>.`;
 
+  const headsUp = orderHeadsUp(order.items);
+
   const html = layout({
     title: subject,
     eyebrow: `Order #${order.orderNumber}`,
     heading: `Thank you, ${escapeHtml(firstName)}`,
     intro:
       para(lead) +
+      (headsUp ? para(escapeHtml(headsUp), `color:${C.sorrel};font-weight:600;`) : "") +
       para(`Collect from ${escapeHtml(COLLECTION_ADDRESS)}. Collection only.`, `color:${C.muted};font-size:15px;`),
     body:
       `<h2 style="margin:0 0 4px;font-family:${SERIF};font-size:20px;font-weight:600;color:${C.pimento};">Your order</h2>` +
@@ -127,6 +135,7 @@ export function buildCustomerOrderEmail(order: OrderDetail) {
     "",
     `Order #${order.orderNumber}`,
     order.scheduledFor ? `Ready to collect on ${ready}.` : `Ready to collect at ${ready}.`,
+    ...(headsUp ? [headsUp] : []),
     `Collect from ${COLLECTION_ADDRESS}. Collection only.`,
     "",
     ...order.items.map(
@@ -160,7 +169,7 @@ export function buildShopOrderEmail(order: OrderDetail) {
         "font-size:15px;",
       ),
     body:
-      itemsTable(order) +
+      itemsTable(order, { kitchen: true }) +
       (order.note ? para(`<strong>Note:</strong> ${escapeHtml(order.note)}`, "font-size:15px;") : "") +
       para("This is a backup. The order is on the kitchen board.", `margin-top:24px;color:${C.muted};font-size:14px;`),
     footer: "Sent by the Flowers Kitchen website.",
@@ -172,7 +181,10 @@ export function buildShopOrderEmail(order: OrderDetail) {
     `${order.customerName} · ${order.customerPhone}`,
     "",
     ...order.items.map(
-      (item) => `${item.quantity} × ${item.name}${item.options.length ? ` (${item.options.join(", ")})` : ""}`,
+      (item) =>
+        `${item.quantity} × ${item.name}${item.options.length ? ` (${item.options.join(", ")})` : ""}${
+          item.missingSides.length ? ` — ${kitchenSidesNote(item.missingSides)}` : ""
+        }`,
     ),
     ...(order.note ? ["", `Note: ${order.note}`] : []),
     "",

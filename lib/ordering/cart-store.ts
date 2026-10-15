@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { MAX_LINE_QUANTITY } from "./limits";
-import { cartLineKey, type CartLine } from "./types";
+import { cartLineKey, type BasketFlag, type CartLine } from "./types";
 
 // The basket lives in localStorage (ported from the template's storefront session cart), so it
 // survives the trip to Stripe and back, and stays in step across tabs.
@@ -10,9 +10,12 @@ import { cartLineKey, type CartLine } from "./types";
 const CART_KEY = "fk_cart_v1";
 const NONCE_KEY = "fk_checkout_nonce";
 const EMPTY: CartLine[] = [];
+const EMPTY_FLAGS: Record<string, BasketFlag> = {};
 
 let lines: CartLine[] | null = null;
 let drawerOpen = false;
+// Lines checkout refused this visit. Not saved: the basket re-checks against the live menu anyway.
+let flags: Record<string, BasketFlag> = {};
 const listeners = new Set<() => void>();
 
 function isLine(value: unknown): value is CartLine {
@@ -49,6 +52,8 @@ function emit() {
 
 function save(next: CartLine[]) {
   lines = next;
+  const keys = new Set(next.map((line) => line.key));
+  flags = Object.fromEntries(Object.entries(flags).filter(([key]) => keys.has(key)));
   try {
     if (next.length === 0) window.localStorage.removeItem(CART_KEY);
     else window.localStorage.setItem(CART_KEY, JSON.stringify({ v: 1, lines: next }));
@@ -102,6 +107,31 @@ export const cart = {
   replace(next: CartLine[]) {
     save(next);
   },
+  /** Swaps a choice that ran out for one still on (same quantity), merging with a matching line. */
+  swapOption(key: string, swap: NonNullable<BasketFlag["swap"]>) {
+    const current = getLines();
+    const line = current.find((item) => item.key === key);
+    if (!line) return;
+    const at = line.optionIds.indexOf(swap.fromId);
+    if (at === -1) return;
+    const optionIds = line.optionIds.map((id, i) => (i === at ? swap.toId : id));
+    const optionLabels = line.optionLabels.map((label, i) => (i === at ? swap.toName : label));
+    const nextKey = cartLineKey(line.boxId, optionIds);
+    const merged = current.find((item) => item.key === nextKey);
+    save(
+      current.flatMap((item) => {
+        if (item.key === key) {
+          return merged ? [] : [{ ...item, key: nextKey, optionIds, optionLabels }];
+        }
+        if (item.key === nextKey) return [{ ...item, quantity: Math.min(item.quantity + line.quantity, MAX_LINE_QUANTITY) }];
+        return [item];
+      }),
+    );
+  },
+  flag(flag: BasketFlag) {
+    flags = { ...flags, [flag.key]: flag };
+    emit();
+  },
   clear() {
     save(EMPTY);
     try {
@@ -120,6 +150,10 @@ export const cart = {
 
 export function useCart() {
   return useSyncExternalStore(subscribe, getLines, () => EMPTY);
+}
+
+export function useBasketFlags() {
+  return useSyncExternalStore(subscribe, () => flags, () => EMPTY_FLAGS);
 }
 
 export function useCartDrawerOpen() {

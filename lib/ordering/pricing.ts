@@ -3,7 +3,8 @@ import { z } from "zod";
 import { supabase } from "@/lib/supabase-server";
 import { BIG_ORDER_MESSAGE, MAX_LINE_QUANTITY, MAX_ORDER_QUANTITY } from "./limits";
 import { mapBox, readMainMenuRows } from "./menu";
-import { cartLineKey, type CartLine, type MenuBox } from "./types";
+import { listOr, lowerFirst, missingSides } from "./sides";
+import { cartLineKey, type BasketFlag, type CartLine, type MenuBox } from "./types";
 
 // Only ids and quantities are read from the browser. Every name and price comes from the database.
 export const cartInputSchema = z
@@ -28,28 +29,50 @@ export type PricedLine = {
   quantity: number;
   lineTotalPence: number;
   options: { groupId: string; groupName: string; optionId: string; optionName: string; pricePence: number }[];
+  /** Included sides that are out right now. The box still sells at the same price. */
+  missingSides: string[];
 };
 
 export type PricedCart =
   | { ok: true; menuId: string | null; lines: PricedLine[]; totalPence: number; cart: CartLine[] }
-  | { ok: false; message: string };
+  | { ok: false; message: string; flag?: BasketFlag };
 
-function priceLine(box: MenuBox, optionIds: string[], quantity: number): PricedLine | string {
-  if (box.soldOut) return `Sorry, ${box.name} has sold out. Please remove it from your basket.`;
+type Refusal = { message: string; flag?: BasketFlag };
 
+function priceLine(box: MenuBox, optionIds: string[], quantity: number): PricedLine | Refusal {
+  const key = cartLineKey(box.id, optionIds);
   const chosen = new Set(optionIds);
-  if (chosen.size !== optionIds.length) return `Please choose again for ${box.name}.`;
+
+  // A choice that has run out comes first: telling them to pick the other rice beats "sold out".
+  for (const group of box.groups) {
+    const gone = group.options.find((option) => chosen.has(option.id) && !option.available);
+    if (!gone) continue;
+    const others = group.options.filter((option) => option.available && !chosen.has(option.id));
+    const swap = group.max === 1 && others[0] ? { fromId: gone.id, toId: others[0].id, toName: others[0].name } : null;
+    return {
+      message: others.length
+        ? `Sorry, we've just run out of ${lowerFirst(gone.name)}. Please choose ${listOr(others.map((o) => o.name))}.`
+        : `Sorry, we've just run out of ${lowerFirst(gone.name)}, so ${box.name} is sold out today. Please remove it from your basket.`,
+      flag: { key, note: `${gone.name} has just run out.`, swap },
+    };
+  }
+
+  if (box.soldOut) {
+    return {
+      message: `Sorry, ${box.name} has sold out today. Please remove it from your basket.`,
+      flag: { key, note: "Sold out today.", swap: null },
+    };
+  }
+
+  if (chosen.size !== optionIds.length) return { message: `Please choose again for ${box.name}.` };
 
   const options: PricedLine["options"] = [];
   for (const group of box.groups) {
     const picked = group.options.filter((option) => chosen.has(option.id));
     if (picked.length < group.min || picked.length > group.max || (group.required && picked.length === 0)) {
-      return `Please choose your ${group.name.toLowerCase()} for ${box.name}.`;
+      return { message: `Please choose your ${group.name.toLowerCase()} for ${box.name}.` };
     }
     for (const option of picked) {
-      if (!option.available) {
-        return `${option.name} isn't available right now. Please choose again for ${box.name}.`;
-      }
       chosen.delete(option.id);
       options.push({
         groupId: group.id,
@@ -60,11 +83,11 @@ function priceLine(box: MenuBox, optionIds: string[], quantity: number): PricedL
       });
     }
   }
-  if (chosen.size > 0) return `Please choose again for ${box.name}.`;
+  if (chosen.size > 0) return { message: `Please choose again for ${box.name}.` };
 
   const optionsPence = options.reduce((sum, option) => sum + option.pricePence, 0);
   const unitPence = box.pricePence + optionsPence;
-  if (unitPence <= 0) return `${box.name} can't be ordered online right now.`;
+  if (unitPence <= 0) return { message: `${box.name} can't be ordered online right now.` };
 
   return {
     boxId: box.id,
@@ -75,6 +98,7 @@ function priceLine(box: MenuBox, optionIds: string[], quantity: number): PricedL
     quantity,
     lineTotalPence: unitPence * quantity,
     options,
+    missingSides: missingSides(box),
   };
 }
 
@@ -106,7 +130,7 @@ export async function priceCart(input: CartInput): Promise<PricedCart> {
     const box = boxes.get(line.boxId);
     if (!box) return { ok: false, message: "Something in your basket is no longer on the menu. Please remove it." };
     const priced = priceLine(box, line.optionIds, line.quantity);
-    if (typeof priced === "string") return { ok: false, message: priced };
+    if ("message" in priced) return { ok: false, ...priced };
     lines.push(priced);
   }
 

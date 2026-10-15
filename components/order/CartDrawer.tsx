@@ -6,17 +6,21 @@ import { buttonClasses } from "@/components/Button";
 import { Eyebrow } from "@/components/Eyebrow";
 import { h2, h3 } from "@/lib/typography";
 import { ServiceNote } from "@/components/ServiceNote";
-import { cart, cartTotals, useCart, useCartDrawerOpen } from "@/lib/ordering/cart-store";
+import { cart, cartTotals, useBasketFlags, useCart, useCartDrawerOpen } from "@/lib/ordering/cart-store";
 import { MAX_LINE_QUANTITY } from "@/lib/ordering/limits";
 import { formatPence } from "@/lib/ordering/money";
+import { basketLineFlag } from "@/lib/ordering/sides";
+import type { BasketAvailability } from "@/lib/ordering/types";
+import { BasketLineDetails } from "./BasketLineDetails";
 import { QuantityStepper } from "./QuantityStepper";
 import { Sheet, SheetClose } from "./Sheet";
 
 // Ported from the template's storefront/cart/cart-drawer.tsx, without delivery or fulfilment
 // choices: collection only.
-export function CartDrawer() {
+export function CartDrawer({ availability }: { availability?: BasketAvailability }) {
   const open = useCartDrawerOpen();
   const lines = useCart();
+  const flags = useBasketFlags();
   const titleId = useId();
   const { count, totalPence } = cartTotals(lines);
 
@@ -48,7 +52,11 @@ export function CartDrawer() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <p className="font-semibold">{line.name}</p>
-                    {line.optionLabels.length > 0 && <p className="text-[15px] text-muted">{line.optionLabels.join(", ")}</p>}
+                    <BasketLineDetails
+                      line={line}
+                      missingSides={availability?.[line.boxId]?.missingSides}
+                      flag={flags[line.key] ?? basketLineFlag(line, availability)}
+                    />
                   </div>
                   <p className="font-semibold tabular-nums">{formatPence(line.unitPence * line.quantity)}</p>
                 </div>

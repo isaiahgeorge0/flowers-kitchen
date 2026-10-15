@@ -7,14 +7,16 @@ import { checkoutAction, type CheckoutFormState } from "@/app/(site)/order/check
 import { Button, buttonClasses } from "@/components/Button";
 import { ErrorText, hintClasses, inputClasses, labelClasses } from "@/components/catering/fields";
 import { Eyebrow } from "@/components/Eyebrow";
-import { cart, cartTotals, checkoutNonce, useCart, useHydrated } from "@/lib/ordering/cart-store";
+import { cart, cartTotals, checkoutNonce, useBasketFlags, useCart, useHydrated } from "@/lib/ordering/cart-store";
 import { CUSTOMER_LIMITS, type CustomerValues } from "@/lib/ordering/customer";
 import { formatPence } from "@/lib/ordering/money";
 import { readOrderSource } from "@/lib/ordering/order-source";
-import type { OrderingSettings } from "@/lib/ordering/types";
+import { basketLineFlag } from "@/lib/ordering/sides";
+import type { BasketAvailability, OrderingSettings } from "@/lib/ordering/types";
 import { useCollectionSlots, validSlot } from "@/lib/ordering/use-collection-slots";
 import { useOrderingStatus } from "@/lib/ordering/use-ordering-status";
 import { h1, h3 } from "@/lib/typography";
+import { BasketLineDetails } from "./BasketLineDetails";
 import { CollectionPicker, type CollectionValue } from "./CollectionPicker";
 import { OrderingBanner } from "./OrderingBanner";
 
@@ -39,9 +41,10 @@ const fields: {
   { name: "email", label: "Email", type: "email", autoComplete: "email", inputMode: "email", hint: "We'll email your receipt here." },
 ];
 
-export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
+export function CheckoutForm({ settings, availability }: { settings: OrderingSettings; availability?: BasketAvailability }) {
   const hydrated = useHydrated();
   const lines = useCart();
+  const flags = useBasketFlags();
   const ordering = useOrderingStatus(settings);
   const [state, formAction, pending] = useActionState(checkoutAction, initialState);
   const errorRef = useRef<HTMLDivElement>(null);
@@ -69,7 +72,10 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
 
   useEffect(() => {
     if (state.cart) cart.replace(state.cart);
-    if (state.message) errorRef.current?.focus();
+    if (state.flag) {
+      cart.flag(state.flag);
+      cart.openDrawer();
+    } else if (state.message) errorRef.current?.focus();
   }, [state]);
 
   if (!hydrated) {
@@ -258,7 +264,11 @@ export function CheckoutForm({ settings }: { settings: OrderingSettings }) {
                   <p className="font-semibold">
                     {line.quantity} × {line.name}
                   </p>
-                  {line.optionLabels.length > 0 && <p className="text-[15px] text-muted">{line.optionLabels.join(", ")}</p>}
+                  <BasketLineDetails
+                    line={line}
+                    missingSides={availability?.[line.boxId]?.missingSides}
+                    flag={flags[line.key] ?? basketLineFlag(line, availability)}
+                  />
                 </div>
                 <p className="tabular-nums">{formatPence(line.unitPence * line.quantity)}</p>
               </li>

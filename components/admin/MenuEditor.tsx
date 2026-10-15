@@ -1,7 +1,12 @@
 "use client";
 
 import { useActionState, useOptimistic, useState, useTransition } from "react";
-import { saveBoxDetailsAction, setOptionAvailableAction, setSoldOutAction } from "@/app/admin/(protected)/menu/actions";
+import {
+  saveBoxDetailsAction,
+  setBoxSideAction,
+  setOptionAvailableAction,
+  setSoldOutAction,
+} from "@/app/admin/(protected)/menu/actions";
 import { ActionFeedback, SubmitButton } from "@/components/admin/ActionUi";
 import { adminCard, adminInput, adminLabel } from "@/components/admin/AdminUi";
 import { BOX_LIMITS } from "@/lib/admin/menu-limits";
@@ -15,8 +20,12 @@ export type EditableBox = {
   allergens: string;
   soldOut: boolean;
   hidden: boolean;
-  groups: { id: string; name: string; options: { id: string; name: string; available: boolean }[] }[];
+  groups: { id: string; name: string; options: EditableOption[] }[];
+  /** Every included side, and whether this box comes with it. */
+  sides: { id: string; name: string; included: boolean }[];
 };
+
+type EditableOption = { id: string; name: string; available: boolean; sharedOut: boolean };
 
 export function MenuEditor({ boxes, canEdit }: { boxes: EditableBox[]; canEdit: boolean }) {
   return (
@@ -45,19 +54,31 @@ function BoxEditor({ box, canEdit }: { box: EditableBox; canEdit: boolean }) {
         <SoldOutToggle itemId={box.itemId} soldOut={box.soldOut} name={box.name} />
       </div>
 
-      {box.groups.map((group) => (
-        <fieldset key={group.id} className="mt-5 border-t border-hairline pt-4">
-          <legend className="sr-only">{group.name} options</legend>
-          <p aria-hidden className="text-[15px] font-semibold">
-            {group.name}
-          </p>
+      {canEdit &&
+        box.groups.map((group) => (
+          <fieldset key={group.id} className="mt-5 border-t border-hairline pt-4">
+            <legend className="sr-only">{group.name} options on this box</legend>
+            <p aria-hidden className="text-[15px] font-semibold">
+              {group.name} <span className="font-normal text-muted">· this box only</span>
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {group.options.map((option) => (
+                <OptionToggle key={option.id} option={option} />
+              ))}
+            </div>
+          </fieldset>
+        ))}
+
+      {canEdit && box.sides.length > 0 && (
+        <fieldset className="mt-5 border-t border-hairline pt-4">
+          <legend className="text-[15px] font-semibold">Comes with</legend>
           <div className="mt-3 flex flex-wrap gap-2">
-            {group.options.map((option) => (
-              <OptionToggle key={option.id} option={option} />
+            {box.sides.map((side) => (
+              <SideToggle key={side.id} itemId={box.itemId} boxName={box.name} side={side} />
             ))}
           </div>
         </fieldset>
-      ))}
+      )}
 
       {canEdit && <DetailsForm box={box} />}
     </section>
@@ -106,7 +127,7 @@ function SoldOutToggle({ itemId, soldOut, name }: { itemId: string; soldOut: boo
   );
 }
 
-function OptionToggle({ option }: { option: { id: string; name: string; available: boolean } }) {
+function OptionToggle({ option }: { option: EditableOption }) {
   const { value, pending, error, toggle } = useToggle(option.available, (next) =>
     setOptionAvailableAction(option.id, next),
   );
@@ -126,6 +147,34 @@ function OptionToggle({ option }: { option: { id: string; name: string; availabl
         <span className="text-[13px] font-semibold uppercase tracking-[0.08em] no-underline">
           {value ? "On" : "Off"}
         </span>
+      </button>
+      {option.sharedOut && <p className="mt-1 text-[13px] font-semibold text-sorrel">Out on every box today</p>}
+      {error && (
+        <p role="alert" className="mt-2 max-w-xs text-[15px] font-semibold text-sorrel">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SideToggle({ itemId, boxName, side }: { itemId: string; boxName: string; side: EditableBox["sides"][number] }) {
+  const { value, pending, error, toggle } = useToggle(side.included, (next) => setBoxSideAction(itemId, side.id, next));
+  return (
+    <div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        aria-busy={pending}
+        aria-label={`${boxName} comes with ${side.name}`}
+        onClick={toggle}
+        className={`inline-flex min-h-12 items-center gap-2 rounded-pill border px-4 text-[15px] font-semibold transition-colors duration-300 ease-out ${
+          value ? "border-mountain bg-mountain text-cream [--focus-ring:var(--color-mountain-focus)]" : "border-hairline bg-cream text-muted line-through"
+        }`}
+      >
+        {side.name}
+        <span className="text-[13px] font-semibold uppercase tracking-[0.08em] no-underline">{value ? "In" : "Not in"}</span>
       </button>
       {error && (
         <p role="alert" className="mt-2 max-w-xs text-[15px] font-semibold text-sorrel">

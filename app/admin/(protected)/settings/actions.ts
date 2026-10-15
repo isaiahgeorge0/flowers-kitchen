@@ -38,6 +38,26 @@ export async function setAcceptingOrdersAction(enabled: boolean): Promise<Switch
   return { ok: true };
 }
 
+export async function setDailyResetAction(enabled: boolean): Promise<SwitchResult> {
+  const auth = await requireAdminForAction();
+  if (!auth.ok) return auth;
+  if (!auth.ctx.adminUser.canManageMenus) {
+    return { ok: false, message: "Only staff with menu access can change this." };
+  }
+
+  const { data, error } = await auth.ctx.supabase
+    .from("business_settings")
+    .update({ reset_sold_out_daily: enabled === true })
+    .eq("id", true)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) return { ok: false, message: "We couldn't change that. Try again." };
+
+  updateTag(SETTINGS_TAG);
+  refresh();
+  return { ok: true };
+}
+
 const toMinutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
 
 export async function saveOrderingHoursAction(

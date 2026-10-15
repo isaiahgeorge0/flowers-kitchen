@@ -22,8 +22,10 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
   const roleLabel = ROLE_LABELS[adminUser.role];
   const access = navAccess(adminUser);
 
+  // The kitchen board (data-kitchen) brings its own top bar: below 1440px the sidebar steps aside
+  // so the four columns fit on a landscape tablet.
   return (
-    <div className="flex flex-1 flex-col lg:flex-row">
+    <div className="group/shell flex flex-1 flex-col lg:flex-row">
       <AdminMobileNav
         displayName={displayName}
         roleLabel={roleLabel}
@@ -31,7 +33,7 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
         access={access}
       />
 
-      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col bg-mountain text-cream [--focus-ring:var(--color-mountain-focus)] lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col bg-mountain text-cream [--focus-ring:var(--color-mountain-focus)] lg:flex group-has-[[data-kitchen]]/shell:max-[1440px]:hidden">
         <Link href="/admin" className="block px-8 pb-8 pt-10">
           <Image
             src="/brand/flowers-kitchen_horizontal_reverse-green.svg"
@@ -54,7 +56,10 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main id="main" className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-12">
+      <main
+        id="main"
+        className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-12 group-has-[[data-kitchen]]/shell:max-[1440px]:px-4 group-has-[[data-kitchen]]/shell:max-[1440px]:pt-0"
+      >
         <div className="mx-auto max-w-5xl has-[[data-wide]]:max-w-[1600px]">
           {user.mustChangePassword && (
             <div className="mb-8 rounded-card border border-hairline border-l-sorrel border-l-4 bg-paper px-5 py-4">

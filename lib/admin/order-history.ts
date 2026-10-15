@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { DURATION_LABELS, orderDurations, type OrderDurations } from "@/lib/admin/kitchen-timings";
 import { cleanLeadSearch } from "@/lib/admin/leads";
 import { zonedDayStart } from "@/lib/ordering/hours";
 import { toPence } from "@/lib/ordering/money";
@@ -100,6 +101,53 @@ export async function fetchOrderHistory(client: SupabaseClient, filters: History
   };
 }
 
+const DURATION_KEYS = Object.keys(DURATION_LABELS) as (keyof OrderDurations)[];
+
+export type TodayAverages = { orders: number; averages: OrderDurations };
+
+type TimingRow = {
+  created_at: string;
+  payment_confirmed_at: string | null;
+  confirmed_at: string | null;
+  prepared_at: string | null;
+  ready_at: string | null;
+  completed_at: string | null;
+  scheduled_for: string | null;
+};
+
+/** Average stage times for orders collected today. Null if none yet; undefined if the query failed. */
+export async function fetchTodayAverages(client: SupabaseClient): Promise<TodayAverages | null | undefined> {
+  const { data, error } = await client
+    .from("orders")
+    .select("created_at, payment_confirmed_at, confirmed_at, prepared_at, ready_at, completed_at, scheduled_for")
+    .eq("order_status", "completed")
+    .gte("completed_at", zonedDayStart(new Date(), TIME_ZONE).toISOString())
+    .limit(TOTALS_LIMIT);
+  if (error) return undefined;
+
+  const durations = ((data ?? []) as TimingRow[])
+    .map((row) =>
+      orderDurations({
+        orderStatus: "completed",
+        createdAt: row.created_at,
+        paymentConfirmedAt: row.payment_confirmed_at,
+        confirmedAt: row.confirmed_at,
+        preparedAt: row.prepared_at,
+        readyAt: row.ready_at,
+        completedAt: row.completed_at,
+        cancelledAt: null,
+        scheduledFor: row.scheduled_for,
+      }),
+    )
+    .filter((d): d is OrderDurations => d !== null);
+  if (durations.length === 0) return null;
+
+  const averages = Object.fromEntries(
+    DURATION_KEYS.map((key) => [key, durations.reduce((sum, d) => sum + d[key], 0) / durations.length]),
+  ) as OrderDurations;
+  return { orders: durations.length, averages };
+}
+
 export const ORDER_STATUS_LABELS: Record<OrderDetail["orderStatus"], string> = {
   pending: "Awaiting payment",
   confirmed: "New",
@@ -148,10 +196,12 @@ export function ordersCsv(orders: OrderDetail[]) {
     "Status",
     "Source",
     "Cancel reason",
+    ...DURATION_KEYS.map((key) => `${DURATION_LABELS[key]} (min)`),
   ];
   const pounds = (pence: number) => (pence / 100).toFixed(2);
-  const lines = orders.map((order) =>
-    [
+  const lines = orders.map((order) => {
+    const durations = orderDurations(order);
+    return [
       order.orderNumber,
       formatPlaced(order.createdAt),
       order.scheduledFor ? "Scheduled" : "ASAP",
@@ -168,10 +218,11 @@ export function ordersCsv(orders: OrderDetail[]) {
       ORDER_STATUS_LABELS[order.orderStatus],
       order.source === "qr" ? "QR" : "Web",
       order.cancelReason ?? "",
+      ...DURATION_KEYS.map((key) => (durations ? Math.round(durations[key] / 60_000) : "")),
     ]
       .map(csvCell)
-      .join(","),
-  );
+      .join(",");
+  });
   // Byte order mark so Excel reads the file as UTF-8 (£, accents).
   return `\uFEFF${[header.map(csvCell).join(","), ...lines].join("\r\n")}\r\n`;
 }

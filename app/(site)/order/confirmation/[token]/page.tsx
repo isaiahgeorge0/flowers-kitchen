@@ -12,6 +12,7 @@ import { COLLECTION_ADDRESS } from "@/lib/ordering/limits";
 import { formatPence } from "@/lib/ordering/money";
 import { formatClock, readOrder, type OrderDetail } from "@/lib/ordering/orders";
 import { formatCollectionLong } from "@/lib/ordering/schedule";
+import { orderHeadsUp } from "@/lib/ordering/sides";
 import { supabase } from "@/lib/supabase-server";
 import { h1, h3 } from "@/lib/typography";
 
@@ -95,6 +96,7 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
   }
 
   const ready = order.estimatedReadyAt ? formatClock(order.estimatedReadyAt) : null;
+  const headsUp = orderHeadsUp(order.items);
   const line =
     order.scheduledFor && order.orderStatus === "confirmed"
       ? "We've got your order. We'll have it ready for your collection time."
@@ -107,6 +109,7 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
         <Eyebrow>Order confirmed</Eyebrow>
         <h1 className={`mt-3 ${h1}`}>Thank you, {firstName}.</h1>
         <p className="mt-4 max-w-measure text-lg text-muted">{line}</p>
+        {headsUp && <p className="mt-4 max-w-measure text-lg font-semibold text-sorrel">{headsUp}</p>}
 
         <dl className="mt-10 grid gap-px overflow-hidden rounded-card border border-hairline bg-hairline sm:grid-cols-2">
           <div className="bg-paper p-5 md:p-6">

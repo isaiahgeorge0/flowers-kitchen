@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { captureOrderSource } from "@/lib/ordering/order-source";
+import { outToday } from "@/lib/ordering/sides";
 import type { MenuBox, OrderingSettings } from "@/lib/ordering/types";
 import { h3 } from "@/lib/typography";
 import { useOrderingStatus } from "@/lib/ordering/use-ordering-status";
@@ -9,6 +10,7 @@ import { BasketBar } from "./BasketBar";
 import { ItemSheet } from "./ItemSheet";
 import { OrderBoxCard } from "./OrderBoxCard";
 import { OrderingBanner } from "./OrderingBanner";
+import { OutTodayNote } from "./OutTodayNote";
 
 /** "Most popular" holds the boxes featured in Admin → Menu; the rest follow under "More boxes". */
 function groupBoxes(boxes: MenuBox[]) {
@@ -41,6 +43,7 @@ export function OrderMenu({ boxes, settings }: { boxes: MenuBox[]; settings: Ord
 
   return (
     <>
+      <OutTodayNote names={outToday(boxes)} className="mb-3" />
       <OrderingBanner state={state} leadMinutes={settings.leadMinutes} daysAhead={settings.daysAhead} />
 
       <div className="mt-10 flex flex-col gap-16">

@@ -1,10 +1,15 @@
 import type { OpeningHours } from "./hours";
 
+/** A shared item (menu_components): one switch for every box that uses it. */
+export type SharedItem = { id: string; name: string; available: boolean; order: number };
+
 export type MenuOption = {
   id: string;
   name: string;
   pricePence: number;
+  /** Switched on for this box and, if it's a shared choice, on everywhere. */
   available: boolean;
+  component: SharedItem | null;
 };
 
 export type MenuChoiceGroup = {
@@ -27,10 +32,30 @@ export type MenuBox = {
   pricePence: number;
   allergens: string | null;
   imageUrl: string | null;
+  /** Ticked sold out, or a required choice has nothing left to pick. */
   soldOut: boolean;
   featured: boolean;
   groups: MenuChoiceGroup[];
+  /** Included sides (mac & cheese, festival, coleslaw). Out ones never stop a sale. */
+  sides: SharedItem[];
 };
+
+/** A basket line checkout refused, with a one-tap fix when another choice is still on. */
+export type BasketFlag = {
+  key: string;
+  note: string;
+  swap: { fromId: string; toId: string; toName: string } | null;
+};
+
+/** What the basket needs to flag lines between visits to the order page, by box id. */
+export type BasketAvailability = Record<
+  string,
+  {
+    soldOut: boolean;
+    missingSides: string[];
+    choices: { max: number; options: { id: string; name: string; available: boolean }[] }[];
+  }
+>;
 
 export type OrderingSettings = {
   acceptingOrders: boolean;
@@ -48,6 +73,8 @@ export type OrderingSettings = {
   pausedUntil: string | null;
   pauseAllowsScheduled: boolean;
   readyEmailEnabled: boolean;
+  /** Shared items and boxes go back on sale at 04:00 each day (008_shared_components.sql). */
+  resetSoldOutDaily: boolean;
 };
 
 export type CollectionChoice = { type: "asap" } | { type: "scheduled"; slot: string };

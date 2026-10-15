@@ -8,6 +8,8 @@ import { requireActiveAdmin } from "@/lib/admin/guards";
 import { formatEventDate } from "@/lib/admin/lead-status";
 import { fetchLeadCounts, fetchUpcomingEvents } from "@/lib/admin/leads";
 import { fetchTodayOrderStats } from "@/lib/admin/orders";
+import { fetchOutToday } from "@/lib/admin/shared-items";
+import { lowerFirst } from "@/lib/ordering/sides";
 import { formatPence } from "@/lib/ordering/money";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -38,16 +40,40 @@ async function DashboardContent() {
   const today = todayISO(BUSINESS_TIME_ZONE);
 
   const catering = adminUser.canManageCatering;
-  const [counts, upcoming, orderStats] = await Promise.all([
+  const menuAccess = adminUser.canManageOrders || adminUser.canManageMenus;
+  const [counts, upcoming, orderStats, outToday] = await Promise.all([
     catering ? fetchLeadCounts(supabase) : undefined,
     catering ? fetchUpcomingEvents(supabase, today, addDays(today, UPCOMING_DAYS)) : [],
     adminUser.canManageOrders ? fetchTodayOrderStats(supabase) : Promise.resolve(undefined),
+    menuAccess ? fetchOutToday(supabase) : null,
   ]);
 
-  if (!counts && orderStats === undefined) return <NoAccess area="orders or catering" />;
+  const somethingOut = !!outToday && (outToday.items.length > 0 || outToday.boxes.length > 0);
+  if (!counts && orderStats === undefined && !somethingOut) return <NoAccess area="orders or catering" />;
 
   return (
     <>
+      {outToday && somethingOut && (
+        <Link
+          href="/admin/menu"
+          className={`mb-10 flex flex-wrap items-baseline gap-x-6 gap-y-1 rounded-card border border-sorrel bg-paper px-6 py-4 transition-colors duration-300 ease-out hover:bg-sorrel/[0.05]`}
+          data-out-today
+        >
+          {outToday.items.length > 0 && (
+            <span>
+              <span className="font-semibold text-sorrel">Out today: </span>
+              {outToday.items.map(lowerFirst).join(", ")}
+            </span>
+          )}
+          {outToday.boxes.length > 0 && (
+            <span>
+              <span className="font-semibold text-sorrel">Sold out: </span>
+              {outToday.boxes.join(", ")}
+            </span>
+          )}
+          <span className="ml-auto text-[15px] font-semibold underline decoration-sorrel underline-offset-4">Menu</span>
+        </Link>
+      )}
       {orderStats !== undefined && (
         <section aria-labelledby="orders-today-heading" className="mb-10">
           <h2 id="orders-today-heading" className={`${adminH2} mb-4`}>

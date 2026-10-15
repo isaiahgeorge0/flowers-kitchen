@@ -4,7 +4,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { publicSupabase } from "@/lib/supabase-public";
 import { parseOpeningHours } from "./hours";
 import { formatPence, toPence } from "./money";
-import type { MenuBox, OrderingSettings } from "./types";
+import { missingSides } from "./sides";
+import type { BasketAvailability, MenuBox, OrderingSettings, SharedItem } from "./types";
 
 export const MENU_TAG = "menu";
 export const SETTINGS_TAG = "ordering-settings";
@@ -16,12 +17,24 @@ export const BOX_SELECT = `
     id, slug, name, description, base_price, allergens, image_url, is_available, sold_out, display_order,
     menu_item_option_groups (
       id, name, is_required, min_selections, max_selections, display_order,
-      menu_item_options ( id, name, price_adjustment, display_order, is_available )
-    )
+      menu_item_options (
+        id, name, price_adjustment, display_order, is_available,
+        menu_components ( id, name, is_available, display_order )
+      )
+    ),
+    menu_item_components ( menu_components ( id, name, is_available, display_order ) )
   )
 `;
 
-type OptionRow = { id: string; name: string; price_adjustment: number | string; display_order: number; is_available: boolean };
+type ComponentRow = { id: string; name: string; is_available: boolean; display_order: number };
+type OptionRow = {
+  id: string;
+  name: string;
+  price_adjustment: number | string;
+  display_order: number;
+  is_available: boolean;
+  menu_components: ComponentRow | null;
+};
 type GroupRow = {
   id: string;
   name: string;
@@ -52,13 +65,41 @@ export type BoxRow = {
     sold_out: boolean;
     display_order: number;
     menu_item_option_groups: GroupRow[];
+    menu_item_components: { menu_components: ComponentRow | null }[];
   };
 };
 
 const byOrder = (a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order;
 
+const sharedItem = (row: ComponentRow): SharedItem => ({
+  id: row.id,
+  name: row.name,
+  available: row.is_available,
+  order: row.display_order,
+});
+
 export function mapBox(row: BoxRow): MenuBox {
   const item = row.menu_template_items;
+  const groups = [...item.menu_item_option_groups].sort(byOrder).map((group) => ({
+    id: group.id,
+    name: group.name,
+    required: group.is_required,
+    min: group.min_selections,
+    max: group.max_selections,
+    options: [...group.menu_item_options].sort(byOrder).map((option) => {
+      const component = option.menu_components ? sharedItem(option.menu_components) : null;
+      return {
+        id: option.id,
+        name: option.name,
+        pricePence: toPence(option.price_adjustment),
+        available: option.is_available && (component?.available ?? true),
+        component,
+      };
+    }),
+  }));
+  const choicesLeft = groups.every(
+    (group) => !(group.required || group.min > 0) || group.options.filter((option) => option.available).length >= Math.max(group.min, 1),
+  );
   return {
     id: row.id,
     itemId: item.id,
@@ -68,22 +109,30 @@ export function mapBox(row: BoxRow): MenuBox {
     pricePence: toPence(row.price_override ?? item.base_price),
     allergens: item.allergens,
     imageUrl: item.image_url,
-    soldOut: item.sold_out,
+    soldOut: item.sold_out || !choicesLeft,
     featured: row.is_featured_item,
-    groups: [...item.menu_item_option_groups].sort(byOrder).map((group) => ({
-      id: group.id,
-      name: group.name,
-      required: group.is_required,
-      min: group.min_selections,
-      max: group.max_selections,
-      options: [...group.menu_item_options].sort(byOrder).map((option) => ({
-        id: option.id,
-        name: option.name,
-        pricePence: toPence(option.price_adjustment),
-        available: option.is_available,
-      })),
-    })),
+    groups,
+    sides: (item.menu_item_components ?? [])
+      .flatMap((link) => (link.menu_components ? [sharedItem(link.menu_components)] : []))
+      .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)),
   };
+}
+
+/** Per-box flags the basket shows between visits to the order page. */
+export function basketAvailability(boxes: readonly MenuBox[]): BasketAvailability {
+  return Object.fromEntries(
+    boxes.map((box) => [
+      box.id,
+      {
+        soldOut: box.soldOut,
+        missingSides: missingSides(box),
+        choices: box.groups.map((group) => ({
+          max: group.max,
+          options: group.options.map(({ id, name, available }) => ({ id, name, available })),
+        })),
+      },
+    ]),
+  );
 }
 
 /** All boxes on the main menu, including hidden ones when the client can see them (staff). */
@@ -129,11 +178,13 @@ const DEFAULT_SETTINGS: OrderingSettings = {
   pausedUntil: null,
   pauseAllowsScheduled: true,
   readyEmailEnabled: true,
+  resetSoldOutDaily: true,
 };
 
 const SETTINGS_COLUMNS = `
   accepting_orders, opening_hours_json, collection_lead_minutes, timezone, slot_minutes, max_orders_per_slot,
-  schedule_days_ahead, same_day_cutoff_minutes, paused_until, pause_allows_scheduled, ready_email_enabled
+  schedule_days_ahead, same_day_cutoff_minutes, paused_until, pause_allows_scheduled, ready_email_enabled,
+  reset_sold_out_daily
 `;
 
 const intOr = (value: unknown, fallback: number) => (Number.isInteger(Number(value)) && value !== null ? Number(value) : fallback);
@@ -154,6 +205,7 @@ export async function readOrderingSettings(client: SupabaseClient): Promise<Orde
     pausedUntil: typeof data.paused_until === "string" ? new Date(data.paused_until).toISOString() : null,
     pauseAllowsScheduled: data.pause_allows_scheduled !== false,
     readyEmailEnabled: data.ready_email_enabled !== false,
+    resetSoldOutDaily: data.reset_sold_out_daily !== false,
   };
 }
 

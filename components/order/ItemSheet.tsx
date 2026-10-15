@@ -7,6 +7,7 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { cart } from "@/lib/ordering/cart-store";
 import { MAX_LINE_QUANTITY } from "@/lib/ordering/limits";
 import { formatPence } from "@/lib/ordering/money";
+import { boxSidesNote } from "@/lib/ordering/sides";
 import type { MenuBox } from "@/lib/ordering/types";
 import { h2 } from "@/lib/typography";
 import { QuantityStepper } from "./QuantityStepper";
@@ -52,6 +53,7 @@ function ItemSheetBody({
     group.options.filter((option) => chosen[group.id]?.includes(option.id)),
   );
   const unitPence = box.pricePence + selectedOptions.reduce((sum, option) => sum + option.pricePence, 0);
+  const sidesNote = boxSidesNote(box);
 
   function choose(groupId: string, optionId: string, single: boolean, checked: boolean) {
     setChosen((current) => {
@@ -98,6 +100,7 @@ function ItemSheetBody({
 
       <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
         {box.description && <p className="text-[17px]">{box.description}</p>}
+        {sidesNote && <p className="mt-2 text-[15px] font-semibold text-sorrel">{sidesNote}</p>}
         <div className="mt-4 rounded-input bg-cream px-4 py-3 text-[15px]">
           <p className="font-semibold">Allergens</p>
           <p className="text-muted">{box.allergens || "To be confirmed. Please ask us before you order."}</p>
@@ -143,7 +146,7 @@ function ItemSheetBody({
                       label={option.name}
                       description={
                         !option.available
-                          ? "Not available today"
+                          ? "Out today"
                           : option.pricePence > 0
                             ? `+${formatPence(option.pricePence)}`
                             : undefined

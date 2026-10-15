@@ -1,23 +1,32 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useId, useOptimistic, useState, useTransition } from "react";
 import { setAcceptingOrdersAction } from "@/app/admin/(protected)/settings/actions";
+import { buttonClasses } from "@/components/Button";
+import { Sheet, SheetClose } from "@/components/order/Sheet";
 
 /** The on/off switch for online orders. `large` on Settings, compact on the kitchen board. */
 export function AcceptingOrdersSwitch({ enabled, large = false }: { enabled: boolean; large?: boolean }) {
   const [optimistic, setOptimistic] = useOptimistic(enabled);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const titleId = useId();
 
-  const toggle = () => {
-    const next = !optimistic;
-    if (!next && !window.confirm("Stop taking online orders? Customers will see that ordering is closed.")) return;
+  const apply = (next: boolean) => {
     setError(null);
     startTransition(async () => {
       setOptimistic(next);
       const result = await setAcceptingOrdersAction(next);
       if (!result.ok) setError(result.message);
     });
+  };
+
+  const toggle = () => (optimistic ? setConfirming(true) : apply(true));
+
+  const stop = () => {
+    setConfirming(false);
+    apply(false);
   };
 
   return (
@@ -60,6 +69,29 @@ export function AcceptingOrdersSwitch({ enabled, large = false }: { enabled: boo
           {error}
         </p>
       )}
+
+      <Sheet open={confirming} onClose={() => setConfirming(false)} labelledBy={titleId}>
+        <div className="overflow-y-auto p-6">
+          <div className="flex items-start justify-between gap-4">
+            <h2 id={titleId} className="font-display text-[28px] font-semibold leading-tight">
+              Stop taking online orders?
+            </h2>
+            <SheetClose onClick={() => setConfirming(false)} />
+          </div>
+          <p className="mt-3 text-[17px]">
+            Customers won&rsquo;t be able to order until you turn this back on. Scheduled orders already placed are
+            unaffected.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <button type="button" onClick={() => setConfirming(false)} className={buttonClasses("secondary", "md", "min-h-14")}>
+              Keep taking orders
+            </button>
+            <button type="button" onClick={stop} className={buttonClasses("primary", "md", "min-h-14")}>
+              Stop orders
+            </button>
+          </div>
+        </div>
+      </Sheet>
     </div>
   );
 }

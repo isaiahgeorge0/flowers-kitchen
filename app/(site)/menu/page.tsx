@@ -5,7 +5,9 @@ import { Section, SectionHeader } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
 import { SidesSentence } from "@/components/SidesSentence";
 import { BOXES } from "@/lib/menu";
-import { boxPriceLabels } from "@/lib/ordering/menu";
+import { OutTodayNote } from "@/components/order/OutTodayNote";
+import { boxPriceLabels, getMainMenu } from "@/lib/ordering/menu";
+import { outToday } from "@/lib/ordering/sides";
 import { orderSteps } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,12 +17,13 @@ export const metadata: Metadata = {
 };
 
 export default async function MenuPage() {
-  const prices = await boxPriceLabels();
+  const [prices, boxes] = await Promise.all([boxPriceLabels(), getMainMenu()]);
   return (
     <>
       <Section first>
         <SectionHeader level={1} eyebrow="The menu" title="Pick your box." intro={<SidesSentence />} />
         <ServiceNote className="mt-5 text-muted" />
+        <OutTodayNote names={outToday(boxes ?? [])} className="mt-8 max-w-measure" />
 
         <h2 className="sr-only">All boxes</h2>
         <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

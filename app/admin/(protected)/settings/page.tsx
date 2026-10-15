@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AcceptingOrdersSwitch } from "@/components/admin/AcceptingOrdersSwitch";
 import { AdminLoading, AdminPageHeader, adminCard, adminH2 } from "@/components/admin/AdminUi";
 import { CollectionSettingsForm } from "@/components/admin/CollectionSettingsForm";
+import { DailyResetSwitch } from "@/components/admin/DailyResetSwitch";
 import { OpeningHoursForm } from "@/components/admin/OpeningHoursForm";
 import { buttonClasses } from "@/components/Button";
 import { requireActiveAdmin } from "@/lib/admin/guards";
@@ -76,6 +77,18 @@ async function SettingsContent() {
           <span className="font-semibold">Right now: </span>
           {statusText}
         </p>
+      </section>
+
+      <section aria-labelledby="reset-heading" className={`${adminCard} p-6`}>
+        <h2 id="reset-heading" className={adminH2}>
+          Sold-out items
+        </h2>
+        <p className="mt-2 max-w-2xl text-[15px] text-muted">
+          Switch shared ingredients like rice and festival on and off from the Menu page or the kitchen board.
+        </p>
+        <div className="mt-5">
+          <DailyResetSwitch enabled={settings.resetSoldOutDaily} canChange={adminUser.canManageMenus} />
+        </div>
       </section>
 
       <section aria-labelledby="hours-heading" className={`${adminCard} p-6`}>

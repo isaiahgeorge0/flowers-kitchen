@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { CartDrawer } from "@/components/order/CartDrawer";
+import { basketAvailability, getMainMenu } from "@/lib/ordering/menu";
 import { instagram } from "@/lib/site";
 import { absoluteUrl } from "@/lib/site-url";
 
@@ -21,7 +22,8 @@ const restaurantJsonLd = {
   sameAs: [instagram.url],
 };
 
-export default function SiteLayout({ children }: LayoutProps<"/">) {
+export default async function SiteLayout({ children }: LayoutProps<"/">) {
+  const boxes = await getMainMenu();
   return (
     <>
       <script
@@ -35,7 +37,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <Footer />
-      <CartDrawer />
+      <CartDrawer availability={boxes ? basketAvailability(boxes) : undefined} />
     </>
   );
 }

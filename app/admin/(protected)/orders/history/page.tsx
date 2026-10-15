@@ -5,9 +5,11 @@ import { Suspense } from "react";
 import { AdminLoading, AdminPageHeader, adminCard, adminInput, adminLabel } from "@/components/admin/AdminUi";
 import { buttonClasses } from "@/components/Button";
 import { requireActiveAdmin } from "@/lib/admin/guards";
+import { DURATION_LABELS, formatDuration, orderDurations, type OrderDurations } from "@/lib/admin/kitchen-timings";
 import {
   collectionLabel,
   fetchOrderHistory,
+  fetchTodayAverages,
   formatPlaced,
   HISTORY_LIST_LIMIT,
   HISTORY_STATUS_LABELS,
@@ -16,6 +18,7 @@ import {
   ORDER_STATUS_LABELS,
   parseHistoryFilters,
   type HistoryFilters,
+  type TodayAverages,
 } from "@/lib/admin/order-history";
 import { formatPence } from "@/lib/ordering/money";
 import type { OrderDetail } from "@/lib/ordering/orders";
@@ -46,11 +49,15 @@ async function HistoryContent({ searchParams }: Pick<PageProps<"/admin/orders/hi
   }
 
   const filters = parseHistoryFilters(await searchParams);
-  const { orders, totals, failed } = await fetchOrderHistory(supabase, filters);
+  const [{ orders, totals, failed }, today] = await Promise.all([
+    fetchOrderHistory(supabase, filters),
+    fetchTodayAverages(supabase),
+  ]);
   const query = historyQuery(filters);
 
   return (
     <>
+      <TodayTimes today={today} />
       <FilterForm filters={filters} />
 
       {failed || !totals ? (
@@ -97,6 +104,47 @@ async function HistoryContent({ searchParams }: Pick<PageProps<"/admin/orders/hi
         </Link>
       </p>
     </>
+  );
+}
+
+const DURATION_KEYS = Object.keys(DURATION_LABELS) as (keyof OrderDurations)[];
+
+function TodayTimes({ today }: { today: TodayAverages | null | undefined }) {
+  return (
+    <section aria-labelledby="today-times-heading" className="mb-8">
+      <h2 id="today-times-heading" className="text-[13px] font-semibold uppercase tracking-[0.2em] text-muted">
+        Today&rsquo;s averages
+        {today && (
+          <span className="normal-case tracking-normal">
+            {" "}
+            · {today.orders} collected {today.orders === 1 ? "order" : "orders"}
+          </span>
+        )}
+      </h2>
+      {today === undefined ? (
+        <p role="alert" className="mt-3 text-sorrel">
+          We couldn&rsquo;t load today&rsquo;s times. Refresh to try again.
+        </p>
+      ) : today === null ? (
+        <p className="mt-3 text-muted">No orders collected yet today.</p>
+      ) : (
+        <div className="mt-3 grid gap-4 sm:grid-cols-4">
+          {DURATION_KEYS.map((key) => (
+            <Total key={key} label={DURATION_LABELS[key]} value={formatDuration(today.averages[key])} accent={key === "total"} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function Durations({ order }: { order: OrderDetail }) {
+  const durations = orderDurations(order);
+  if (!durations) return null;
+  return (
+    <p className="text-[15px] text-muted tabular-nums">
+      {DURATION_KEYS.map((key) => `${DURATION_LABELS[key]} ${formatDuration(durations[key])}`).join(" · ")}
+    </p>
   );
 }
 
@@ -196,6 +244,7 @@ function OrderCards({ orders }: { orders: OrderDetail[] }) {
             {order.source === "qr" ? "QR" : "Web"}
           </p>
           <p className="text-[15px] text-muted">Collection: {collectionLabel(order)}</p>
+          <Durations order={order} />
         </li>
       ))}
     </ul>
@@ -219,28 +268,48 @@ function OrderTable({ orders }: { orders: OrderDetail[] }) {
             <th scope="col" className={`${th} text-right`}>Total</th>
             <th scope="col" className={th}>Status</th>
             <th scope="col" className={th}>Source</th>
+            {DURATION_KEYS.map((key) => (
+              <th key={key} scope="col" className={`${th} text-right`}>
+                {DURATION_LABELS[key]}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
-          {orders.map((order) => (
-            <tr key={order.id}>
-              <th scope="row" className={`${td} text-left font-display text-[20px] font-semibold`}>
-                #{order.orderNumber}
-              </th>
-              <td className={`${td} whitespace-nowrap`}>{formatPlaced(order.createdAt)}</td>
-              <td className={td}>{collectionLabel(order)}</td>
-              <td className={td}>
-                <span className="block font-semibold">{order.customerName}</span>
-                <span className="block text-muted">{order.customerPhone}</span>
-              </td>
-              <td className={td}>{boxCount(order)}</td>
-              <td className={`${td} text-right tabular-nums`}>{formatPence(order.totalPence)}</td>
-              <td className={td}>
-                <StatusText order={order} />
-              </td>
-              <td className={td}>{order.source === "qr" ? "QR" : "Web"}</td>
-            </tr>
-          ))}
+          {orders.map((order) => {
+            const durations = orderDurations(order);
+            return (
+              <tr key={order.id}>
+                <th scope="row" className={`${td} text-left font-display text-[20px] font-semibold`}>
+                  #{order.orderNumber}
+                </th>
+                <td className={`${td} whitespace-nowrap`}>{formatPlaced(order.createdAt)}</td>
+                <td className={td}>{collectionLabel(order)}</td>
+                <td className={td}>
+                  <span className="block font-semibold">{order.customerName}</span>
+                  <span className="block text-muted">{order.customerPhone}</span>
+                </td>
+                <td className={td}>{boxCount(order)}</td>
+                <td className={`${td} text-right tabular-nums`}>{formatPence(order.totalPence)}</td>
+                <td className={td}>
+                  <StatusText order={order} />
+                </td>
+                <td className={td}>{order.source === "qr" ? "QR" : "Web"}</td>
+                {DURATION_KEYS.map((key) => (
+                  <td key={key} className={`${td} whitespace-nowrap text-right tabular-nums`}>
+                    {durations ? (
+                      formatDuration(durations[key])
+                    ) : (
+                      <>
+                        <span aria-hidden>–</span>
+                        <span className="sr-only">Not collected</span>
+                      </>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { refresh, updateTag } from "next/cache";
 import { after } from "next/server";
+import { cancelReasonText } from "@/lib/admin/cancel-reasons";
 import { requireAdminForAction } from "@/lib/admin/guards";
 import { isUuid } from "@/lib/admin/orders";
 import { PAUSE_OPTIONS } from "@/lib/ordering/limits";
@@ -60,7 +61,7 @@ export async function moveOrderAction(orderId: string, from: OrderStatus, to: Or
   return { ok: true };
 }
 
-export async function cancelOrderAction(orderId: string, reason: string): Promise<CancelResult> {
+export async function cancelOrderAction(orderId: string, reason: string | null, details: string): Promise<CancelResult> {
   const auth = await kitchenAuth();
   if (!auth.ok) return auth;
   if (!isUuid(orderId)) return { ok: false, message: "We couldn't find that order." };
@@ -94,7 +95,7 @@ export async function cancelOrderAction(orderId: string, reason: string): Promis
     .update({
       order_status: "cancelled",
       cancelled_at: new Date().toISOString(),
-      cancel_reason: reason.trim().slice(0, 200) || "Cancelled by the kitchen",
+      cancel_reason: cancelReasonText(typeof reason === "string" ? reason : null, typeof details === "string" ? details : ""),
     })
     .eq("id", orderId)
     .eq("order_status", order.order_status)

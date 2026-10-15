@@ -36,7 +36,18 @@ export type OrderDetail = {
   refundedPence: number;
   /** Only loaded for the admin (ADMIN_ORDER_SELECT). */
   confirmationEmailSentAt?: string | null;
-  items: { id: string; name: string; quantity: number; unitPence: number; lineTotalPence: number; options: string[] }[];
+  /** When order_status last changed, backwards moves included. Admin only. */
+  statusChangedAt?: string | null;
+  items: {
+    id: string;
+    name: string;
+    quantity: number;
+    unitPence: number;
+    lineTotalPence: number;
+    options: string[];
+    /** Included sides that were out when the order was paid. */
+    missingSides: string[];
+  }[];
 };
 
 export const ORDER_SELECT = `
@@ -47,11 +58,12 @@ export const ORDER_SELECT = `
   collection_type, scheduled_for, slot_over_capacity, source,
   order_items (
     id, item_name_snapshot, unit_price_snapshot, options_unit_total_snapshot, quantity, line_total, created_at,
+    missing_sides,
     order_item_options ( option_name_snapshot, created_at )
   )
 `;
 
-export const ADMIN_ORDER_SELECT = `${ORDER_SELECT}, confirmation_email_sent_at`;
+export const ADMIN_ORDER_SELECT = `${ORDER_SELECT}, confirmation_email_sent_at, status_changed_at`;
 
 type OrderRow = {
   id: string;
@@ -82,6 +94,7 @@ type OrderRow = {
   slot_over_capacity: boolean | null;
   source: string | null;
   confirmation_email_sent_at?: string | null;
+  status_changed_at?: string | null;
   order_items: {
     id: string;
     item_name_snapshot: string;
@@ -90,6 +103,7 @@ type OrderRow = {
     quantity: number;
     line_total: number | string;
     created_at: string;
+    missing_sides: string[] | null;
     order_item_options: { option_name_snapshot: string; created_at: string }[];
   }[];
 };
@@ -124,6 +138,7 @@ export function mapOrder(row: OrderRow): OrderDetail {
     source: row.source === "qr" ? "qr" : "web",
     refundedPence: toPence(row.refunded_total ?? 0),
     ...(row.confirmation_email_sent_at !== undefined && { confirmationEmailSentAt: row.confirmation_email_sent_at }),
+    ...(row.status_changed_at !== undefined && { statusChangedAt: row.status_changed_at }),
     items: [...row.order_items]
       .sort((a, b) => a.item_name_snapshot.localeCompare(b.item_name_snapshot) || a.id.localeCompare(b.id))
       .map((item) => ({
@@ -133,6 +148,7 @@ export function mapOrder(row: OrderRow): OrderDetail {
         unitPence: toPence(item.unit_price_snapshot) + toPence(item.options_unit_total_snapshot),
         lineTotalPence: toPence(item.line_total),
         options: item.order_item_options.map((option) => option.option_name_snapshot),
+        missingSides: item.missing_sides ?? [],
       })),
   };
 }

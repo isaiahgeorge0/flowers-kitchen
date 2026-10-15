@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { startCheckout } from "@/lib/ordering/checkout";
 import type { CustomerErrors, CustomerValues } from "@/lib/ordering/customer";
-import type { CartLine } from "@/lib/ordering/types";
+import type { BasketFlag, CartLine } from "@/lib/ordering/types";
 
 export type CheckoutFormState = {
   message: string | null;
@@ -11,6 +11,8 @@ export type CheckoutFormState = {
   values: CustomerValues;
   /** Repriced basket when prices changed, so the customer sees the new total before paying. */
   cart: CartLine[] | null;
+  /** A line that can't be ordered as it is; the basket opens with it flagged. */
+  flag?: BasketFlag | null;
   attempt: number;
   /** The chosen collection time was taken or has gone; the picker reloads. */
   slotsChanged?: boolean;
@@ -50,6 +52,7 @@ export async function checkoutAction(previous: CheckoutFormState, formData: Form
     fieldErrors: result.fieldErrors ?? {},
     values,
     cart: result.cart ?? null,
+    flag: result.flag ?? null,
     attempt: previous.attempt + 1,
     slotsChanged: result.slotsChanged === true,
   };

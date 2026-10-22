@@ -55,7 +55,7 @@ export const OCCASIONS: { value: Occasion; label: string; description: string }[
   { value: "wedding", label: "Wedding", description: "Receptions and wedding celebrations" },
   { value: "corporate", label: "Corporate", description: "Office lunches, meetings and work events" },
   { value: "christening", label: "Christening", description: "Christenings and naming days" },
-  { value: "other", label: "Something else", description: "Any other gathering — tell us about it" },
+  { value: "other", label: "Something else", description: "Tell us about any other gathering." },
 ];
 
 export const SERVICE_STYLES: { value: ServiceStyle; label: string; description: string }[] = [
@@ -162,7 +162,7 @@ export function estimateLines(est: Estimate) {
   }
   return {
     perHead: `${formatPounds(est.perHead)} per head`,
-    total: `Estimated total ${formatPounds(est.low)}–${formatPounds(est.high)}`,
+    total: `Estimated total ${formatPounds(est.low)} to ${formatPounds(est.high)}`,
   };
 }
 
@@ -186,7 +186,7 @@ export const FIELD_LIMITS = {
 
 export const ENQUIRY_MESSAGES = {
   failed:
-    "Sorry — something went wrong sending your enquiry. Please try again, or message us on Instagram.",
+    "Sorry, something went wrong sending your enquiry. Please try again, or message us on Instagram.",
   duplicate:
     "We've just received an enquiry from this email address. Please give it a few minutes before sending another, or message us on Instagram.",
   invalid:

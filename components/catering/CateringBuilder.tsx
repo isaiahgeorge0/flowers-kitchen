@@ -441,18 +441,18 @@ function MessageWithInstagram({ message }: { message: string }) {
 
 function Success({ event }: { event: CateringEvent }) {
   const rows: [string, string][] = [
-    ["Occasion", occasionLabel(event.occasion) ?? "—"],
+    ["Occasion", occasionLabel(event.occasion) ?? "Not chosen yet"],
     ["Guests", `${event.guests} · about ${tablesFor(event.guests)} tables`],
-    ["Service", serviceLabel(event.service) ?? "—"],
-    ["Mains", event.mains.map(mainName).join(", ") || "—"],
-    ["Extras", event.extras.join(", ") || "—"],
-    ["Date", formatDate(event.date) ?? "—"],
-    ["Time", event.time || "—"],
-    ["Venue postcode", event.postcode.toUpperCase() || "—"],
+    ["Service", serviceLabel(event.service) ?? "Not chosen yet"],
+    ["Mains", event.mains.map(mainName).join(", ") || "Not chosen yet"],
+    ["Extras", event.extras.join(", ") || "Not chosen yet"],
+    ["Date", formatDate(event.date) ?? "Not chosen yet"],
+    ["Time", event.time || "Not chosen yet"],
+    ["Venue postcode", event.postcode.toUpperCase() || "Not chosen yet"],
     ["Name", event.name],
     ["Email", event.email],
-    ["Phone", event.phone || "—"],
-    ["Notes", event.notes || "—"],
+    ["Phone", event.phone || "Not chosen yet"],
+    ["Notes", event.notes || "Not chosen yet"],
   ];
 
   return (
@@ -462,7 +462,7 @@ function Success({ event }: { event: CateringEvent }) {
         tabIndex={-1}
         className={`scroll-mt-28 outline-none ${h2}`}
       >
-        Thank you — we&apos;ve got it.
+        Thank you, we&apos;ve got it.
       </h2>
       <p className="mt-6 text-lg">
         Asher or Tajay will be in touch soon with your quote.

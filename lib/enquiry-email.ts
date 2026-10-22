@@ -7,7 +7,7 @@ import {
   tablesFor,
 } from "./catering";
 import { BUSINESS_TIME_ZONE, type Enquiry } from "./catering-schema";
-import { address } from "./site";
+import { address, phone } from "./site";
 
 // Brand tokens from .cursor/rules/brand.mdc. Email clients need inline styles.
 const C = {
@@ -84,7 +84,7 @@ export function buildEnquiryEmail({
     timeStyle: "short",
   }).format(receivedAt);
 
-  const subject = `New catering enquiry — ${occasion}, ${enquiry.guests} guests, ${date}`;
+  const subject = `New catering enquiry: ${occasion}, ${enquiry.guests} guests, ${date}`;
 
   const rows: Row[] = [
     ...eventRows(enquiry),
@@ -160,11 +160,12 @@ export function buildEnquiryEmail({
 /** "Thanks — we've got your enquiry", to the customer. Replies go to the catering inbox. */
 export function buildEnquiryConfirmationEmail(enquiry: Enquiry) {
   const firstName = enquiry.name.split(" ")[0] || enquiry.name;
-  const subject = "Thanks — we've got your catering enquiry";
-  const heading = "Thanks — we've got your enquiry";
+  const subject = "Thanks, we've got your catering enquiry";
+  const heading = "Thanks, we've got your enquiry";
   const rows: Row[] = [...eventRows(enquiry), ...(enquiry.notes ? [{ label: "Your notes", text: enquiry.notes }] : [])];
   const intro = `Hi ${firstName}, thanks for telling us about your event. We'll look over the details and come back to you with a quote.`;
-  const reply = "Anything to add or change? Just reply to this email.";
+  const replyText = `Anything to add or change? Reply to this email or call us on ${phone.display}.`;
+  const replyHtml = `Anything to add or change? Reply to this email or call us on <a href="${escapeHtml(phone.href)}" style="color:${C.sorrel};">${escapeHtml(phone.display)}</a>.`;
   const footer = `Flowers Kitchen Catering · ${address}`;
 
   const html = `<!doctype html>
@@ -190,7 +191,7 @@ export function buildEnquiryConfirmationEmail(enquiry: Enquiry) {
           <td style="padding:16px 32px 32px;">
             <h2 style="margin:0 0 4px;font-family:${SERIF};font-size:20px;font-weight:600;color:${C.pimento};">Your event</h2>
             ${rowsHtml(rows)}
-            <p style="margin:24px 0 0;font-family:${SANS};font-size:15px;line-height:1.6;color:${C.muted};">${escapeHtml(reply)}</p>
+            <p style="margin:24px 0 0;font-family:${SANS};font-size:15px;line-height:1.6;color:${C.muted};">${replyHtml}</p>
           </td>
         </tr>
       </table>
@@ -201,7 +202,7 @@ export function buildEnquiryConfirmationEmail(enquiry: Enquiry) {
 </body>
 </html>`;
 
-  const text = [heading, "", intro, "", "YOUR EVENT", ...rowsText(rows), "", reply, "", footer].join("\n");
+  const text = [heading, "", intro, "", "YOUR EVENT", ...rowsText(rows), "", replyText, "", footer].join("\n");
 
   return { subject, html, text };
 }

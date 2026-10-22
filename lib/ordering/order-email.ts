@@ -1,5 +1,5 @@
 import "server-only";
-import { shopPhone } from "@/lib/site";
+import { phone } from "@/lib/site";
 import { COLLECTION_ADDRESS } from "./limits";
 import { formatPence } from "./money";
 import { formatClock, type OrderDetail } from "./orders";
@@ -32,10 +32,8 @@ function readyText(order: OrderDetail) {
 }
 
 const contactHtml = () =>
-  shopPhone
-    ? `Questions? Reply to this email or call us on <a href="tel:${escapeHtml(shopPhone.replace(/\s/g, ""))}" style="color:${C.sorrel};">${escapeHtml(shopPhone)}</a>.`
-    : "Questions? Just reply to this email.";
-const contactText = () => (shopPhone ? `Questions? Reply to this email or call us on ${shopPhone}.` : "Questions? Just reply to this email.");
+  `Questions? Reply to this email or call us on <a href="${escapeHtml(phone.href)}" style="color:${C.sorrel};">${escapeHtml(phone.display)}</a>.`;
+const contactText = () => `Questions? Reply to this email or call us on ${phone.display}.`;
 
 function itemsTable(order: OrderDetail, { kitchen = false } = {}) {
   const cell = `padding:12px 0;border-bottom:1px solid ${C.hairline};vertical-align:top;font-family:${SANS};font-size:15px;line-height:1.5;color:${C.pimento};`;
@@ -140,7 +138,7 @@ export function buildCustomerOrderEmail(order: OrderDetail) {
     "",
     ...order.items.map(
       (item) =>
-        `${item.quantity} × ${item.name} box${item.options.length ? ` (${item.options.join(", ")})` : ""} — ${formatPence(item.lineTotalPence)}`,
+        `${item.quantity} × ${item.name} box${item.options.length ? ` (${item.options.join(", ")})` : ""}: ${formatPence(item.lineTotalPence)}`,
     ),
     `Total paid: ${formatPence(order.totalPence)}`,
     ...(order.note ? ["", `Your note: ${order.note}`] : []),
@@ -156,7 +154,7 @@ export function buildCustomerOrderEmail(order: OrderDetail) {
 
 export function buildShopOrderEmail(order: OrderDetail) {
   const ready = order.scheduledFor ? `for ${readyText(order)}` : `ASAP, ready ${readyText(order)}`;
-  const subject = `New order #${order.orderNumber} — ${formatPence(order.totalPence)}, ${ready}`;
+  const subject = `New order #${order.orderNumber}: ${formatPence(order.totalPence)}, ${ready}`;
   const html = layout({
     title: subject,
     eyebrow: order.scheduledFor ? "New scheduled order" : "New online order",
@@ -183,7 +181,7 @@ export function buildShopOrderEmail(order: OrderDetail) {
     ...order.items.map(
       (item) =>
         `${item.quantity} × ${item.name}${item.options.length ? ` (${item.options.join(", ")})` : ""}${
-          item.missingSides.length ? ` — ${kitchenSidesNote(item.missingSides)}` : ""
+          item.missingSides.length ? `: ${kitchenSidesNote(item.missingSides)}` : ""
         }`,
     ),
     ...(order.note ? ["", `Note: ${order.note}`] : []),
@@ -198,10 +196,10 @@ export function buildCancellationEmail(order: OrderDetail) {
   const refundPence = order.refundedPence > 0 ? order.refundedPence : order.paymentStatus === "refunded" ? order.totalPence : 0;
   const subject = `Your Flowers Kitchen order #${order.orderNumber} has been cancelled`;
   const refundLine = refundPence > 0
-    ? `We've refunded <strong>${formatPence(refundPence)}</strong> to the card you paid with. Refunds usually take 5–10 working days to reach your account.`
+    ? `We've refunded <strong>${formatPence(refundPence)}</strong> to the card you paid with. Refunds usually take 5 to 10 working days to reach your account.`
     : "No money was taken for this order.";
   const refundTextLine = refundPence > 0
-    ? `We've refunded ${formatPence(refundPence)} to the card you paid with. Refunds usually take 5–10 working days to reach your account.`
+    ? `We've refunded ${formatPence(refundPence)} to the card you paid with. Refunds usually take 5 to 10 working days to reach your account.`
     : "No money was taken for this order.";
 
   const html = layout({
@@ -227,7 +225,7 @@ export function buildCancellationEmail(order: OrderDetail) {
     "",
     ...order.items.map(
       (item) =>
-        `${item.quantity} × ${item.name} box${item.options.length ? ` (${item.options.join(", ")})` : ""} — ${formatPence(item.lineTotalPence)}`,
+        `${item.quantity} × ${item.name} box${item.options.length ? ` (${item.options.join(", ")})` : ""}: ${formatPence(item.lineTotalPence)}`,
     ),
     "",
     contactText(),

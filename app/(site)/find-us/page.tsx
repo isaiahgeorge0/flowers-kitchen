@@ -20,17 +20,17 @@ const faqs: { question: string; answer: ReactNode }[] = [
   { question: "Is the food halal?", answer: "Yes, all our food is halal." },
   {
     question: "Do you deliver?",
-    answer: "Not at the moment — we're collection only.",
+    answer: "Not at the moment, we're collection only.",
   },
   {
     question: "Can I order in advance?",
     answer: (
       <>
-        Yes —{" "}
+        Yes.{" "}
         <Link href={orderHref} className="underline decoration-sorrel underline-offset-4">
-          order online
+          Order online
         </Link>{" "}
-        and we&apos;ll have it ready to collect.
+        and collect from the shop.
       </>
     ),
   },

@@ -10,6 +10,7 @@ import { Photo } from "@/components/Photo";
 import { Section, SectionHeader } from "@/components/Section";
 import { ServiceNote } from "@/components/ServiceNote";
 import { SidesSentence } from "@/components/SidesSentence";
+import { Testimonials } from "@/components/Testimonials";
 import { FEATURED_BOXES } from "@/lib/menu";
 import { boxPriceLabels } from "@/lib/ordering/menu";
 import { addressHeading, orderHref, phone } from "@/lib/site";
@@ -27,6 +28,7 @@ export default function Home() {
       <Hero />
       <OurStory />
       <TheBoxes />
+      <Testimonials />
       <Catering />
       <FindUs />
     </>

@@ -51,12 +51,7 @@ export function SummaryPanel({ event }: { event: CateringEvent }) {
           <div key={row.label} className="grid grid-cols-[6rem_1fr] gap-4 py-2.5">
             <dt className="text-muted">{row.label}</dt>
             <dd>
-              {row.value ?? (
-                <>
-                  <span aria-hidden className="text-muted">—</span>
-                  <span className="sr-only">Not chosen yet</span>
-                </>
-              )}
+              {row.value ?? <span className="text-muted">Not chosen yet</span>}
               {row.extra && <span className="block text-muted">{row.extra}</span>}
             </dd>
           </div>
@@ -69,7 +64,7 @@ export function SummaryPanel({ event }: { event: CateringEvent }) {
         </p>
         <p className="mt-1">{lines.total}</p>
         <p className="mt-3 text-[13px] text-muted">
-          An estimate only — your final quote comes from the family.
+          An estimate only, and your final quote comes from the family.
         </p>
       </div>
     </section>

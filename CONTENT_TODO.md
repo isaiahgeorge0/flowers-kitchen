@@ -6,17 +6,15 @@ Every placeholder still on the site, grouped by what the client needs to supply.
 
 Used on `/privacy` and `/terms`. All four live in the `legal` constant in `lib/site.ts`.
 
-- **Legal entity name.** The business behind Flowers Kitchen: a limited company, partnership or sole trader name. Shows as "[Legal entity name — XXXX]".
+- **Legal entity name.** The business behind Flowers Kitchen: a limited company, partnership or sole trader name. Shows as "[Legal entity name: XXXX]".
 - **Full postal address.** Street number and postcode. Shows as "XX St Helen's Street, Ipswich XXXX XXX". The rest of the site just says "St Helen's Street, Ipswich" (`address` in `lib/site.ts`). Add the postcode to the JSON-LD in `app/(site)/layout.tsx` too.
-- **Shop email.** For privacy requests and order questions. Shows as "[shop email — XXXX]".
+- **Shop email.** For privacy requests and order questions. Shows as "[shop email: XXXX]".
 - **Founding year.** The primary logo artwork reads "FLOWERS & SONS · EST. XXXX". It appears in the footer and on the link-preview image (`app/opengraph-image.tsx`). The logo files in `public/brand/` need re-exporting with the real year. Don't edit the SVGs by hand.
 - **"Last updated" date** on both policies. Shows as "XXXX". Set it when the client signs off the wording.
 
 ## 2. Phone number
 
-- **Shop phone.** The header, site menu, footer, the home page's Find us section, `/find-us` and `/terms` show **01632 960000**, an Ofcom fictional number. Replace `phone` in `lib/site.ts` (display text and `tel:` link).
-- **Phone in emails.** Set `shopPhone` in `lib/site.ts` so it appears in the cancellation and "ready" emails. Until then they say "reply to this email".
-- **JSON-LD.** Add `telephone` in `app/(site)/layout.tsx` once confirmed. A TODO there marks the spot.
+The shop number is set: **07471 904524**, in `phone` in `lib/site.ts` (display text and `tel:+447471904524`). The header, site menu, footer, Find us, terms, order and catering emails, and the JSON-LD `telephone` field all read from it.
 
 ## 3. Privacy policy decisions (`app/(site)/privacy/page.tsx`)
 
@@ -32,9 +30,9 @@ The page is a full draft and needs the client's review before launch. It's marke
 
 This page is also a full draft, marked the same way.
 
-- **Uncollected orders.** How long an order is kept, and whether it's refunded. Shown in a dashed "To be confirmed — XXXX" box.
+- **Uncollected orders.** How long an order is kept, and whether it's refunded. Shown in a dashed "To be confirmed: XXXX" box.
 - **Cancellations and refunds.** Whether customers can cancel after paying, up to when, and what happens if something is wrong with the food. Shown in a dashed box.
-- **VAT.** "Prices include VAT where applicable (VAT status to be confirmed — XXXX)". Is the business VAT-registered?
+- **VAT.** "Prices include VAT where applicable (VAT status to be confirmed: XXXX)". Is the business VAT-registered?
 - **The wording overall.** "Your order", "Collection", "Allergens", "Prices and payment" and "The law" (England and Wales) describe how the site works today. Confirm they match how the shop runs.
 
 ## 5. Menu
@@ -47,7 +45,7 @@ This page is also a full draft, marked the same way.
 
 ## 6. Opening hours
 
-- **Opening hours.** Set them in Admin → Settings → Opening hours. Until then the footer and Find us show "00:00 – 00:00" (`lib/ordering/hours.ts`) and online ordering stays closed.
+- **Opening hours.** Set them in Admin → Settings → Opening hours. Until then the footer and Find us show "00:00 to 00:00" (`lib/ordering/hours.ts`) and online ordering stays closed.
 - **JSON-LD hours.** Add `openingHoursSpecification` in `app/(site)/layout.tsx` once confirmed.
 - **ASAP time.** Currently 20 minutes (Admin → Settings → Collection times). Last ASAP orders are this long before closing.
 
@@ -63,10 +61,11 @@ Every placeholder below is a light panel with a hibiscus outline, the caption an
 | `/order` box cards (×7) | Food photo | `components/order/OrderBoxCard.tsx`, set `image_url` on each `menu_template_items` row |
 | Our story, top | Family archive photo | `app/(site)/our-story/page.tsx` |
 | Our story, Jamaica | Archive photo | `app/(site)/our-story/page.tsx` |
-| Our story, Ipswich | Ipswich photo | `app/(site)/our-story/page.tsx` |
+| Our story, Ipswich | Asher with his family in the kitchen | `public/images/flowers-family-kitchen.jpg`, in place |
 | Our story, the brothers | Asher & Tajay photo | `app/(site)/our-story/page.tsx` |
 
 - **Our story copy.** `app/(site)/our-story/page.tsx` is marked "Copy to be reviewed with the family before launch".
+- **Testimonial: real customer quote, name and photo, with the customer's permission to use them.** The homepage shows a placeholder until then (`SHOW_PLACEHOLDER_TESTIMONIAL` in `lib/content/testimonials.ts`). Set that flag to false to hide the block before launch.
 
 ## 8. Collection slots (decisions)
 
@@ -88,7 +87,7 @@ These rules are also written up in `lib/ordering/schedule.ts`.
 - **Email addresses.** Orders and catering use separate addresses (`lib/env.ts`, `lib/email-senders.ts`). Set these in Vercel as plain addresses; the code adds the sender names "Flowers Kitchen" and "Flowers Kitchen Catering".
   - `ORDERS_FROM_EMAIL=orders@flowerskitchen.co.uk`: sends every order email (confirmation, ready, cancellation, and the shop's "New order" alert).
   - `ORDERS_TO_EMAIL=orders@flowerskitchen.co.uk`: gets the "New order" alert and customers' replies to order emails.
-  - `ENQUIRY_FROM_EMAIL=catering@flowerskitchen.co.uk`: sends catering emails (the shop notification and the customer's "Thanks — we've got your enquiry").
+  - `ENQUIRY_FROM_EMAIL=catering@flowerskitchen.co.uk`: sends catering emails (the shop notification and the customer's "Thanks, we've got your enquiry").
   - `ENQUIRY_TO_EMAIL=catering@flowerskitchen.co.uk`: gets new enquiries and customers' replies to the confirmation.
 - **Spam and abuse protection.** Both are required in production; the build fails without them.
   - `RATE_LIMIT_SALT`: a long random string (for example `openssl rand -hex 32`). Checkout allows 5 tries per 10 minutes per IP and per phone number; the catering form allows 3 per hour per IP. Run migration 005 first.

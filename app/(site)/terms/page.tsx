@@ -58,7 +58,7 @@ export default function TermsPage() {
           with your order.
         </PolicyGap>
         <p>
-          If we cancel your order, we&apos;ll refund you in full to the card you paid with. Refunds usually take 5–10
+          If we cancel your order, we&apos;ll refund you in full to the card you paid with. Refunds usually take 5 to 10
           working days to reach your account. None of this affects your legal rights.
         </p>
       </LegalSection>
@@ -73,7 +73,7 @@ export default function TermsPage() {
 
       <LegalSection title="Prices and payment">
         <p>
-          Prices are in pounds sterling and include VAT where applicable. <span className="text-muted">(VAT status to be confirmed — XXXX.)</span>
+          Prices are in pounds sterling and include VAT where applicable. <span className="text-muted">(VAT status to be confirmed: XXXX.)</span>
         </p>
         <p>
           You pay in full when you order, by card, Apple Pay or Google Pay, through Stripe. We never see or store your

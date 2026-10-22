@@ -1,6 +1,6 @@
 import "server-only";
 
-// DM Sans SemiBold (wght 600, opsz 14) glyph outlines for printable ASCII plus … · — –, so the
+// DM Sans SemiBold (wght 600, opsz 14) glyph outlines for printable ASCII plus … ·, so the
 // QR downloads carry brand lettering as paths: no font has to be installed where they're
 // rasterised or printed.
 // Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts).
@@ -107,8 +107,6 @@ const GLYPHS: Record<string, [advance: number, path: string]> = {
   "~": [571, "M371 -231Q340 -231 317 -241Q293 -252 273 -265Q253 -279 234 -289Q214 -300 191 -300Q166 -300 149 -282Q132 -264 127 -233L38 -233Q46 -293 68 -331Q90 -370 124 -388Q157 -406 197 -406Q229 -406 253 -395Q277 -385 298 -372Q318 -359 338 -348Q357 -338 379 -338Q405 -338 422 -355Q438 -373 442 -405L533 -405Q525 -345 503 -306Q481 -268 447 -249Q413 -231 371 -231Z"],
   "…": [652, "M327 5Q294 5 273 -16Q251 -37 251 -66Q251 -97 273 -118Q294 -139 327 -139Q361 -139 382 -118Q402 -97 402 -66Q402 -37 382 -16Q361 5 327 5ZM534 5Q501 5 480 -16Q458 -37 458 -66Q458 -97 480 -118Q501 -139 534 -139Q568 -139 589 -118Q609 -97 609 -66Q609 -37 589 -16Q568 5 534 5ZM119 5Q86 5 65 -16Q43 -37 43 -66Q43 -97 65 -118Q86 -139 119 -139Q153 -139 174 -118Q194 -97 194 -66Q194 -37 174 -16Q153 5 119 5Z"],
   "·": [236, "M119 -259Q86 -259 65 -280Q43 -301 43 -330Q43 -362 65 -382Q86 -403 119 -403Q153 -403 174 -382Q194 -362 194 -330Q194 -301 174 -280Q153 -259 119 -259Z"],
-  "—": [905, "M75 -245L75 -345L829 -345L829 -245Z"],
-  "–": [688, "M75 -245L75 -345L612 -345L612 -245Z"],
 };
 
 const round = (value: number) => Math.round(value * 100) / 100;

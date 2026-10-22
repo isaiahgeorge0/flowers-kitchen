@@ -15,7 +15,15 @@ export const metadata: Metadata = {
     "Brothers Asher and Tajay Flowers cook the recipes taught by their fathers and uncles, who were born in Jamaica and built a life in Ipswich.",
 };
 
-const chapters = [
+const chapters: {
+  eyebrow: string;
+  title: string;
+  body: string;
+  caption: string;
+  alt: string;
+  src?: string;
+  objectPosition?: string;
+}[] = [
   {
     eyebrow: "Jamaica",
     title: "Where it started",
@@ -26,14 +34,17 @@ const chapters = [
   {
     eyebrow: "Ipswich",
     title: "Building a life here",
-    body: "They came to England, settled in Ipswich and built a life — and a kitchen — here.",
+    body: "They came to England, settled in Ipswich, and built a life and a kitchen here.",
     caption: "Ipswich photo",
-    alt: "The family in Ipswich",
+    alt: "Asher Flowers with his family in the Flowers Kitchen kitchen",
+    src: "/images/flowers-family-kitchen.jpg",
+    // Faces sit in the upper middle. The frame stays 4/3, close to the photo, so a taller crop never cuts the group at the sides.
+    objectPosition: "center 35%",
   },
   {
     eyebrow: "Flowers & Sons",
     title: "The next generation",
-    body: "Now the cooking is down to us — Asher and Tajay. Same recipes, same care, cooked fresh for Ipswich.",
+    body: "Now the cooking is down to us, Asher and Tajay. Same recipes, same care, cooked fresh for Ipswich.",
     caption: "Asher & Tajay photo",
     alt: "Asher and Tajay Flowers",
   },
@@ -82,10 +93,12 @@ export default function OurStoryPage() {
                 <SectionHeader eyebrow={chapter.eyebrow} title={chapter.title} intro={chapter.body} />
               </div>
               <Photo
+                src={chapter.src}
                 alt={chapter.alt}
                 aspect="4/3"
                 caption={chapter.caption}
                 sizes="(min-width: 1024px) 560px, 100vw"
+                objectPosition={chapter.objectPosition}
               />
             </Reveal>
           ))}

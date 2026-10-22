@@ -38,7 +38,7 @@ export function VenuePreviewFallback({ event }: { event: CateringEvent }) {
               {readout.label}
             </dt>
             <dd className="mt-1 font-display text-base font-semibold leading-tight md:text-xl">
-              {readout.value ?? "—"}
+              {readout.value ?? "Not chosen yet"}
             </dd>
           </div>
         ))}

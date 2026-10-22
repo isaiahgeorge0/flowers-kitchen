@@ -301,7 +301,6 @@ function OrderTable({ orders }: { orders: OrderDetail[] }) {
                       formatDuration(durations[key])
                     ) : (
                       <>
-                        <span aria-hidden>–</span>
                         <span className="sr-only">Not collected</span>
                       </>
                     )}

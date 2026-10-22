@@ -43,7 +43,8 @@ export function OrderBoxCard({ box, canOrder, onAdd }: { box: MenuBox; canOrder:
           </p>
           {box.soldOut ? (
             <p className={`inline-flex min-h-11 items-center rounded-pill border border-hairline px-5 ${caps} tracking-[0.08em] text-muted`}>
-              Sold out today<span className="sr-only"> — {box.name}</span>
+              <span aria-hidden>Sold out today</span>
+              <span className="sr-only">{box.name}, sold out today</span>
             </p>
           ) : (
             <Button onClick={onAdd} disabled={!canOrder} aria-haspopup="dialog" className="pl-5">

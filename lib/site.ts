@@ -16,23 +16,19 @@ export const address = "St Helen's Street, Ipswich";
 /** For headings: only breaks after the comma. */
 export const addressHeading = address.replace("St Helen's Street", "St\u00A0Helen's\u00A0Street");
 
-// TODO: replace with the shop's real number — "01632 960000" is an Ofcom fictional number. See CONTENT_TODO.md.
 export const phone = {
-  display: "01632 960000",
-  href: "tel:+441632960000",
+  display: "07471 904524",
+  href: "tel:+447471904524",
 };
-
-/** Shown in customer emails once confirmed, e.g. "01473 000000". See CONTENT_TODO.md. */
-export const shopPhone: string | null = null;
 
 // TODO: confirm with the client before launch. Used by /privacy and /terms. See CONTENT_TODO.md.
 export const legal = {
   /** The business behind Flowers Kitchen, e.g. a limited company or partnership name. */
-  entityName: "[Legal entity name — XXXX]",
+  entityName: "[Legal entity name: XXXX]",
   /** Full postal address including the number and postcode. */
   postalAddress: "XX St Helen's Street, Ipswich XXXX XXX",
   /** Where privacy and order questions go. */
-  email: "[shop email — XXXX]",
+  email: "[shop email: XXXX]",
   lastUpdated: "XXXX",
 };
 

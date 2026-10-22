@@ -55,7 +55,7 @@ export function CollectionPicker({
       <h2 id="checkout-collection" className={h3}>
         Collection
       </h2>
-      <p className="mt-1 text-[15px] text-muted">Collection only — {COLLECTION_ADDRESS}</p>
+      <p className="mt-1 text-[15px] text-muted">Collection only from {COLLECTION_ADDRESS}</p>
 
       <fieldset className="mt-5">
         <legend className="sr-only">When would you like to collect?</legend>

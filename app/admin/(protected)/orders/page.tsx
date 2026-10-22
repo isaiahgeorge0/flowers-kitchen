@@ -69,8 +69,7 @@ async function OrdersContent() {
       <p className="mt-10 border-t border-hairline pt-6 text-[15px]">
         <Link href="/admin/orders/history" className="inline-flex min-h-11 items-center font-semibold underline decoration-sorrel underline-offset-4">
           Order history
-        </Link>
-        <span className="text-muted"> — past orders, totals and CSV export.</span>
+        </Link><span className="text-muted">. Past orders, totals and CSV export.</span>
       </p>
     </>
   );

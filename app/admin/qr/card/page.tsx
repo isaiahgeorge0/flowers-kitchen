@@ -62,7 +62,7 @@ async function Card() {
         <div className="mt-[3mm] w-[60mm]" dangerouslySetInnerHTML={{ __html: qr }} />
 
         <p className="mt-[3mm] font-display text-[17pt] font-semibold leading-[1.15] tracking-[-0.01em]">
-          Skip the queue — order and pay on your phone
+          Skip the queue. Order and pay on your phone.
         </p>
         <p className="mt-auto text-[9.5pt] font-semibold uppercase tracking-[0.18em]">Collection only · Halal</p>
         <p className="mt-[1.5mm] text-[9pt] text-muted">{qrDisplayUrl()}</p>

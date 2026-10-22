@@ -16,8 +16,8 @@ export const metadata: Metadata = { title: "Lead" };
 function replyHref(lead: Lead) {
   const occasion = lead.occasion === "other" ? null : occasionLabel(lead.occasion as Occasion);
   const subject = occasion
-    ? `Your ${occasion.toLowerCase()} catering enquiry — Flowers Kitchen`
-    : "Your catering enquiry — Flowers Kitchen";
+    ? `Your ${occasion.toLowerCase()} catering enquiry | Flowers Kitchen`
+    : "Your catering enquiry | Flowers Kitchen";
   const firstName = lead.name.trim().split(/\s+/)[0];
   const body = `Hi ${firstName},\n\nThank you for your catering enquiry for ${formatEventDate(lead.eventDate)} (${lead.guests} guests).\n\n`;
   return `mailto:${lead.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

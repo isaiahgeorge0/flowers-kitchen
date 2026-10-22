@@ -16,12 +16,12 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
-const title = "Flowers Kitchen — Jamaican family recipes, Ipswich";
+const title = "Flowers Kitchen | Jamaican family recipes, Ipswich";
 
 export const metadata: Metadata = {
   title: {
     default: title,
-    template: "%s — Flowers Kitchen",
+    template: "%s | Flowers Kitchen",
   },
   description:
     "Jamaican family recipes, cooked by the next generation. Halal boxes to collect from St Helen's Street, Ipswich. Order online or book us for your event.",

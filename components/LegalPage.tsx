@@ -39,7 +39,7 @@ export function LegalSection({ title, children }: { title: string; children: Rea
 export function PolicyGap({ children }: { children: ReactNode }) {
   return (
     <p className="rounded-input border border-dashed border-hairline bg-paper px-4 py-3 text-[15px] text-muted">
-      <span className="font-semibold text-pimento">To be confirmed — XXXX. </span>
+      <span className="font-semibold text-pimento">To be confirmed: XXXX. </span>
       {children}
     </p>
   );

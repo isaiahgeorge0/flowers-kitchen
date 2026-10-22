@@ -61,7 +61,7 @@ async function Confirmation({ params }: { params: Promise<{ token: string }> }) 
         <h1 className={`mt-3 ${h1}`}>{refunded ? "This order was cancelled." : "This order wasn't paid."}</h1>
         <p className="mt-6 text-lg">
           {refunded
-            ? "We've refunded your payment. Refunds usually take 5–10 working days to reach your account."
+            ? "We've refunded your payment. Refunds usually take 5 to 10 working days to reach your account."
             : "No money was taken. Your basket is still saved if you'd like to try again."}
         </p>
         <Link href="/order" className={buttonClasses("primary", "md", "mt-8")}>

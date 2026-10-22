@@ -62,9 +62,9 @@ export function openingHoursRows(hours: OpeningHours) {
   return WEEKDAYS.map((day) => ({
     day: dayLabel(day),
     hours: !configured
-      ? "00:00 – 00:00"
+      ? "00:00 to 00:00"
       : hours[day].enabled
-        ? `${hours[day].open} – ${hours[day].close}`
+        ? `${hours[day].open} to ${hours[day].close}`
         : "Closed",
   }));
 }
@@ -188,7 +188,7 @@ export function orderingStatus(settings: StatusSettings, at: Date = new Date()):
 
 export function closedMessage(status: Exclude<OrderingStatus, { open: true }>) {
   if (status.reason === "paused") {
-    return `We're very busy — online ordering is paused for a few minutes. Back at ${status.resumeAt}.`;
+    return `We're very busy, so online ordering is paused for a few minutes. Back at ${status.resumeAt}.`;
   }
   if (status.reason === "closed" && status.next) {
     return `We're closed for online orders right now. We're next open ${status.next.when} at ${status.next.time}.`;

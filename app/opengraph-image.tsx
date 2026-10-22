@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 
 // Satori reads ttf/otf/woff only (not woff2), so the brand fonts are kept as woff in assets/fonts.
 
-export const alt = "Flowers Kitchen — Jamaican family recipes, cooked in Ipswich.";
+export const alt = "Flowers Kitchen | Jamaican family recipes, cooked in Ipswich.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
